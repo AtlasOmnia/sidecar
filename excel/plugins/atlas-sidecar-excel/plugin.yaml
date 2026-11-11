@@ -1,0 +1,67 @@
+name: atlas-sidecar-excel
+version: 1.0.0
+manifest_version: 2
+author: Atlas Omnia
+license: Apache-2.0
+description: >-
+  Sidecar for Excel — chat with Hermes in a sidebar inside desktop Excel for Mac while
+  Hermes reads, reviews and edits the open workbook through sidecar_excel_* tools. The sidebar is a static
+  page; this plugin runs its HTTPS loopback bridge (localhost:47640-47644) and forwards the sidebar's chat to
+  your Hermes API server. Each sidebar connects only after you allow it in Hermes (/sidecar-excel); the
+  approval is remembered until /sidecar-excel revoke. Requires one manual user trust step for its local CA.
+python_dependencies:
+  - "cryptography>=43"
+requires_hermes: ">=0.23.0"
+platforms: [macos]  # Windows desktop Excel untested
+tags: [office, excel, desktop, sidebar, spreadsheets]
+kind: standalone
+requires_env:
+  - name: API_SERVER_KEY
+    description: "Your Hermes API server key (the same API_SERVER_KEY that enables the API server). The sidebar's chat goes to your local API server; the plugin reads this key through Hermes and never stores or shows it."
+    secret: true
+config_schema:
+  addin_base:
+    type: str
+    default: "https://atlasomnia.github.io/sidecar-excel/"
+    label: "Sidebar site"
+    description: "Base URL (https, ending in /) of the site that serves the Excel sidebar build. The bridge accepts requests only from this site's origin."
+  api_server_url:
+    type: str
+    default: "http://127.0.0.1:8642"
+    label: "Hermes API server"
+    description: "Loopback URL of your Hermes API server (http://127.0.0.1:<port>)."
+  autostart:
+    type: bool
+    default: true
+    label: "Start the bridge with the gateway"
+    description: "Start the sidebar bridge when the Hermes gateway (which runs the API server) loads this plugin. Off: it starts on the first /sidecar-excel command or sidecar_excel_* tool call."
+provides_tools:
+  - sidecar_excel_get_workbook_overview
+  - sidecar_excel_read_range
+  - sidecar_excel_summarize_range_stats
+  - sidecar_excel_write_range
+  - sidecar_excel_format_range
+  - sidecar_excel_conditional_format_range
+  - sidecar_excel_freeze_panes
+  - sidecar_excel_set_data_validation
+  - sidecar_excel_create_sheet
+  - sidecar_excel_delete_sheet
+  - sidecar_excel_activate_sheet
+  - sidecar_excel_insert_table
+  - sidecar_excel_sort_table
+  - sidecar_excel_filter_table
+  - sidecar_excel_create_chart
+  - sidecar_excel_find_replace
+  - sidecar_excel_clear_range
+  - sidecar_excel_autofill_formula
+  - sidecar_excel_rename_sheet
+  - sidecar_excel_copy_sheet
+  - sidecar_excel_protect_sheet
+  - sidecar_excel_unprotect_sheet
+  - sidecar_excel_create_pivot_table
+  - sidecar_excel_run_calculation
+  - sidecar_excel_add_comment
+  - sidecar_excel_clear_comments
+  - sidecar_excel_import_csv_to_sheet
+  - sidecar_excel_execute_plan
+provides_hooks: [pre_tool_call, post_tool_call]

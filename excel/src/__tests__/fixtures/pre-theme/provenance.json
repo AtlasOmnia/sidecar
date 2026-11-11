@@ -1,0 +1,12 @@
+{
+  "taskpane.html": {
+    "historical_source_sha256": "e49bf81e5d7bdd73102005c9429a5a4ec9b59f9fd1084baf156239ad3062bb7d",
+    "source_commit": "c83ee5cf78a8a473d2131643c661e595baaedeca",
+    "source_path": "src/taskpane/taskpane.html"
+  },
+  "manifest.xml": {
+    "historical_source_sha256": "a920da0e1d0458705f6cff3e448fb2afd3307d8863781816123dde22ea0f397c",
+    "source_commit": "c83ee5cf78a8a473d2131643c661e595baaedeca",
+    "source_path": "manifest.xml"
+  }
+}

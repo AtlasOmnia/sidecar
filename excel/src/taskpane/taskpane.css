@@ -1,0 +1,22 @@
+/* Excel-only workbook notices. Shared pane layout is in omnia-pane.css. */
+.checkpoint-bar { flex: none; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; padding: 10px 14px; border-top: 1px solid var(--line); background: var(--raised); gap: 8px; }
+.checkpoint-text { font-size: 13px; color: var(--caution); }
+.checkpoint-actions { display: flex; gap: 6px; }
+.reconciliation-status { flex: none; margin: 0; padding: 8px 14px; border-bottom: 1px solid var(--line); background: var(--raised); color: var(--caution); font-size: 12px; font-weight: 600; overflow-wrap: anywhere; }
+.reconciliation-status[hidden] { display: none; }
+
+.desk-connect {
+  display: grid;
+  gap: 8px;
+  margin: 8px 12px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+.desk-connect[hidden] { display: none; }
+.desk-connect p { margin: 0; }
+.desk-connect-code {
+  font: 600 1.25rem/1.2 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  letter-spacing: 0.08em;
+}
+.settings-note { margin: 0; font-size: 0.85rem; line-height: 1.4; }

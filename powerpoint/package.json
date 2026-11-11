@@ -1,0 +1,43 @@
+{
+  "name": "atlas-sidecar-powerpoint",
+  "version": "1.1.0",
+  "private": true,
+  "description": "Sidecar for PowerPoint: a static desktop PowerPoint sidebar for your own Hermes agent (bridge runs inside the Hermes plugin).",
+  "scripts": {
+    "build": "webpack --mode production",
+    "build:static": "node scripts/build-static.mjs",
+    "generate:plugin-schemas": "node scripts/generate-powerpoint-plugin-schemas.mjs",
+    "check:plugin-schemas": "node scripts/generate-powerpoint-plugin-schemas.mjs --check",
+    "test": "npm run test:unit && npm run test:plugin",
+    "test:unit": "vitest run",
+    "test:watch": "vitest",
+    "test:plugin": "node scripts/run-python-tests.mjs --pytest scripts/tests"
+  },
+  "dependencies": {
+    "@types/office-js": "^1.0.477",
+    "dompurify": "^3.2.3",
+    "marked": "^15.0.6"
+  },
+  "devDependencies": {
+    "@noble/hashes": "1.8.0",
+    "copy-webpack-plugin": "^14.0.0",
+    "css-loader": "^7.1.4",
+    "html-webpack-plugin": "^5.6.3",
+    "jsdom": "^27.0.0",
+    "style-loader": "^4.0.0",
+    "ts-loader": "^9.5.2",
+    "typescript": "^5.7.3",
+    "vitest": "^3.2.4",
+    "webpack": "^5.97.1",
+    "webpack-cli": "^6.0.1"
+  },
+  "overrides": {
+    "adm-zip": "0.6.0",
+    "nanoid": "3.3.18",
+    "uuid": "^11.1.1 || ^13.0.0 || ^14.0.1"
+  },
+  "license": "Apache-2.0",
+  "engines": {
+    "node": ">=20.9.0"
+  }
+}

@@ -1,0 +1,49 @@
+{
+  "caseId": "table",
+  "provenance": "synthetic",
+  "sourceClass": "generic",
+  "transport": "openai-tool-call",
+  "locale": "en",
+  "syntheticInput": {
+    "userPrompt": "Create a table",
+    "workbookContext": {
+      "activeSheet": "Sheet1",
+      "selectedRange": "A1:D10"
+    }
+  },
+  "workbookSeed": {
+    "sheets": [
+      "Sheet1"
+    ],
+    "cells": {
+      "Sheet1!A1": "Name",
+      "Sheet1!B1": "Value"
+    }
+  },
+  "confirmation": "none",
+  "faults": {},
+  "modelOutput": {
+    "tool_calls": [
+      {
+        "id": "synthetic",
+        "type": "function",
+        "function": {
+          "name": "excel_execute_plan",
+          "arguments": "{\"version\":1,\"outcome\":\"execute\",\"summary\":\"Synthetic change\",\"operations\":[{\"kind\":\"create_table\",\"sheet\":\"Sheet1\",\"address\":\"A1:B2\",\"hasHeaders\":true}],\"verification\":[{\"kind\":\"sentinel_unchanged\",\"sheet\":\"Sheet1\",\"address\":\"C1\",\"expected\":null}]}"
+        }
+      }
+    ]
+  },
+  "expect": {
+    "outcome": "committed",
+    "verification": "verified",
+    "mutationCount": 2,
+    "state": {
+      "cells": { "Sheet1!A1": "Name", "Sheet1!B1": "Value" },
+      "numberFormats": {},
+      "tables": [
+        { "name": "Hermes_Table_c536118b_b29a_5c6e_9630_61c774a135a6", "sheet": "Sheet1", "address": "A1:B2", "showHeaders": true, "showTotals": false }
+      ]
+    }
+  }
+}

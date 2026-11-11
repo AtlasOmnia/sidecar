@@ -1,0 +1,28 @@
+{
+  "caseId": "conflicting-alias-001",
+  "sourceClass": "generic",
+  "transport": "openai-tool-call",
+  "description": "Conflicting canonical and alias ranges in same operation",
+  "syntheticInput": {
+    "userPrompt": "Write data to the selected range",
+    "workbookContext": {
+      "activeSheet": "Sheet1",
+      "selectedRange": "A1:B5"
+    }
+  },
+  "modelOutput": {
+    "tool_calls": [
+      {
+        "id": "call_008",
+        "type": "function",
+        "function": {
+          "name": "write_range",
+          "arguments": "{\"sheet\": \"Sheet1\", \"address\": \"A1:B5\", \"range\": \"C1:D5\", \"values\": [[\"X\", \"Y\"], [1, 2], [3, 4], [5, 6], [7, 8]]}"
+        }
+      }
+    ]
+  },
+  "expectedDisposition": "rejected-conflicting-alias",
+  "failureClass": "conflicting-aliases",
+  "notes": "Both 'address' (canonical) and 'range' (alias) are present with different values"
+}

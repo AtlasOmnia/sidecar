@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<OfficeApp
+  xmlns="http://schemas.microsoft.com/office/appforoffice/1.1"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:bt="http://schemas.microsoft.com/office/officeappbasictypes/1.0"
+  xmlns:ov="http://schemas.microsoft.com/office/taskpaneappversionoverrides"
+  xsi:type="TaskPaneApp">
+  <Id>0bb2b56e-c997-4ef7-a67a-c1a0f3ca4f2e</Id>
+  <Version>1.0.0.0</Version>
+  <ProviderName>Atlas Omnia</ProviderName>
+  <DefaultLocale>en-US</DefaultLocale>
+  <DisplayName DefaultValue="Sidecar for Excel"/>
+  <Description DefaultValue="An agentic AI assistant that works directly in your Excel workbook."/>
+  <IconUrl DefaultValue="{{ADDIN_BASE}}assets/icon-32.png"/>
+  <HighResolutionIconUrl DefaultValue="{{ADDIN_BASE}}assets/icon-128.png"/>
+  <SupportUrl DefaultValue="{{ADDIN_BASE}}taskpane.html"/>
+  <AppDomains>
+    <AppDomain>{{ADDIN_ORIGIN}}</AppDomain>
+  </AppDomains>
+  <Hosts>
+    <Host Name="Workbook"/>
+  </Hosts>
+  <DefaultSettings>
+    <SourceLocation DefaultValue="{{ADDIN_BASE}}taskpane.html"/>
+  </DefaultSettings>
+  <Permissions>ReadWriteDocument</Permissions>
+  <VersionOverrides xmlns="http://schemas.microsoft.com/office/taskpaneappversionoverrides" xsi:type="VersionOverridesV1_0">
+    <Hosts>
+      <Host xsi:type="Workbook">
+        <DesktopFormFactor>
+          <GetStarted>
+            <Title resid="GetStarted.Title"/>
+            <Description resid="GetStarted.Description"/>
+            <LearnMoreUrl resid="GetStarted.LearnMoreUrl"/>
+          </GetStarted>
+          <FunctionFile resid="Commands.Url"/>
+          <ExtensionPoint xsi:type="PrimaryCommandSurface">
+            <OfficeTab id="TabHome">
+              <Group id="Hermes.Group">
+                <Label resid="Hermes.Group.Label"/>
+                <Icon>
+                  <bt:Image size="16" resid="Hermes.Icon.16"/>
+                  <bt:Image size="32" resid="Hermes.Icon.32"/>
+                  <bt:Image size="80" resid="Hermes.Icon.80"/>
+                </Icon>
+                <Control xsi:type="Button" id="Hermes.OpenPane">
+                  <Label resid="Hermes.OpenPane.Label"/>
+                  <Supertip>
+                    <Title resid="Hermes.OpenPane.Label"/>
+                    <Description resid="Hermes.OpenPane.Tooltip"/>
+                  </Supertip>
+                  <Icon>
+                    <bt:Image size="16" resid="Hermes.Icon.16"/>
+                    <bt:Image size="32" resid="Hermes.Icon.32"/>
+                    <bt:Image size="80" resid="Hermes.Icon.80"/>
+                  </Icon>
+                  <Action xsi:type="ShowTaskpane">
+                    <TaskpaneId>Hermes.Taskpane</TaskpaneId>
+                    <SourceLocation resid="Taskpane.Url"/>
+                  </Action>
+                </Control>
+              </Group>
+            </OfficeTab>
+          </ExtensionPoint>
+        </DesktopFormFactor>
+      </Host>
+    </Hosts>
+    <Resources>
+      <bt:Images>
+        <bt:Image id="Hermes.Icon.16" DefaultValue="{{ADDIN_BASE}}assets/icon-16.png"/>
+        <bt:Image id="Hermes.Icon.32" DefaultValue="{{ADDIN_BASE}}assets/icon-32.png"/>
+        <bt:Image id="Hermes.Icon.80" DefaultValue="{{ADDIN_BASE}}assets/icon-80.png"/>
+      </bt:Images>
+      <bt:Urls>
+        <bt:Url id="Commands.Url" DefaultValue="{{ADDIN_BASE}}commands.html"/>
+        <bt:Url id="GetStarted.LearnMoreUrl" DefaultValue="{{ADDIN_BASE}}taskpane.html"/>
+        <bt:Url id="Taskpane.Url" DefaultValue="{{ADDIN_BASE}}taskpane.html"/>
+      </bt:Urls>
+      <bt:ShortStrings>
+        <bt:String id="GetStarted.Title" DefaultValue="Sidecar for Excel"/>
+        <bt:String id="Hermes.Group.Label" DefaultValue="Sidecar for Excel"/>
+        <bt:String id="Hermes.OpenPane.Label" DefaultValue="Sidecar for Excel"/>
+      </bt:ShortStrings>
+      <bt:LongStrings>
+        <bt:String id="GetStarted.Description" DefaultValue="Chat with Sidecar for Excel in a pinned task pane and let it edit the open workbook."/>
+        <bt:String id="Hermes.OpenPane.Tooltip" DefaultValue="Open Sidecar for Excel, your AI workbook assistant."/>
+      </bt:LongStrings>
+    </Resources>
+    <VersionOverrides xmlns="http://schemas.microsoft.com/office/taskpaneappversionoverrides/1.1" xsi:type="VersionOverridesV1_1">
+      <Hosts>
+        <Host xsi:type="Workbook">
+          <DesktopFormFactor>
+            <GetStarted>
+              <Title resid="GetStarted.Title"/>
+              <Description resid="GetStarted.Description"/>
+              <LearnMoreUrl resid="GetStarted.LearnMoreUrl"/>
+            </GetStarted>
+            <FunctionFile resid="Commands.Url"/>
+            <ExtensionPoint xsi:type="PrimaryCommandSurface">
+              <OfficeTab id="TabHome">
+                <Group id="Hermes.Group">
+                  <Label resid="Hermes.Group.Label"/>
+                  <Icon>
+                    <bt:Image size="16" resid="Hermes.Icon.16"/>
+                    <bt:Image size="32" resid="Hermes.Icon.32"/>
+                    <bt:Image size="80" resid="Hermes.Icon.80"/>
+                  </Icon>
+                  <Control xsi:type="Button" id="Hermes.OpenPane">
+                    <Label resid="Hermes.OpenPane.Label"/>
+                    <Supertip>
+                      <Title resid="Hermes.OpenPane.Label"/>
+                      <Description resid="Hermes.OpenPane.Tooltip"/>
+                    </Supertip>
+                    <Icon>
+                      <bt:Image size="16" resid="Hermes.Icon.16"/>
+                      <bt:Image size="32" resid="Hermes.Icon.32"/>
+                      <bt:Image size="80" resid="Hermes.Icon.80"/>
+                    </Icon>
+                    <Action xsi:type="ShowTaskpane">
+                      <TaskpaneId>Hermes.Taskpane</TaskpaneId>
+                      <SourceLocation resid="Taskpane.Url"/>
+                      <SupportsPinning>true</SupportsPinning>
+                    </Action>
+                  </Control>
+                </Group>
+              </OfficeTab>
+            </ExtensionPoint>
+          </DesktopFormFactor>
+        </Host>
+      </Hosts>
+      <Resources>
+        <bt:Images>
+          <bt:Image id="Hermes.Icon.16" DefaultValue="{{ADDIN_BASE}}assets/icon-16.png"/>
+          <bt:Image id="Hermes.Icon.32" DefaultValue="{{ADDIN_BASE}}assets/icon-32.png"/>
+          <bt:Image id="Hermes.Icon.80" DefaultValue="{{ADDIN_BASE}}assets/icon-80.png"/>
+        </bt:Images>
+        <bt:Urls>
+          <bt:Url id="Commands.Url" DefaultValue="{{ADDIN_BASE}}commands.html"/>
+          <bt:Url id="GetStarted.LearnMoreUrl" DefaultValue="{{ADDIN_BASE}}taskpane.html"/>
+          <bt:Url id="Taskpane.Url" DefaultValue="{{ADDIN_BASE}}taskpane.html"/>
+        </bt:Urls>
+        <bt:ShortStrings>
+          <bt:String id="GetStarted.Title" DefaultValue="Sidecar for Excel"/>
+          <bt:String id="Hermes.Group.Label" DefaultValue="Sidecar for Excel"/>
+          <bt:String id="Hermes.OpenPane.Label" DefaultValue="Sidecar for Excel"/>
+        </bt:ShortStrings>
+        <bt:LongStrings>
+          <bt:String id="GetStarted.Description" DefaultValue="Chat with Sidecar for Excel in a pinned task pane and let it edit the open workbook."/>
+          <bt:String id="Hermes.OpenPane.Tooltip" DefaultValue="Open Sidecar for Excel, your AI workbook assistant."/>
+        </bt:LongStrings>
+      </Resources>
+    </VersionOverrides>
+  </VersionOverrides>
+</OfficeApp>

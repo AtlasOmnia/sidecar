@@ -1,0 +1,22 @@
+{
+  "version": 1,
+  "description": "Model conformance fixture corpus for Sidecar for Excel",
+  "corpusVersion": "1.0.0",
+  "transports": ["openai-tool-call", "xml-fallback"],
+  "fixtureCount": 12,
+  "files": {
+    "conflicting-alias-001.json": "f75cb03ff37be15ce0c3050272a58fe313237843685e1c363223fa72c9eac3dd",
+    "deepseek-drift-001.json": "cf3747d3e2511e14cf9d7383eca813b2b28a318bb33ec91cf9fc6617516325c7",
+    "deepseek-drift-002.json": "7692dd03c27796580355fc265f2a6ef8f7b045a481d7290c762fc44c6b655e6e",
+    "deepseek-drift-003.json": "aaaad82d6530845a0957255ba0b6be1d9234a19e2427d24e5fd3899f43baa8c0",
+    "duplicate-write-001.json": "f2e0103935e21d76412effbf17166f7a97b95178e5af2d8f0a6861586481d314",
+    "hallucinated-tool-001.json": "6d4e046899adf2ca0a455107c4e79b6fa6e1f9d575a3c47bcc110100980c7654",
+    "malformed-json-001.json": "2b198f090f009d9edb7eaceafa9cb208c0a2998f43cab1433c92ffd652920357",
+    "openai-tool-call-001.json": "3b58632ed09cc978c92293da09bb9fcac7ef738379c731bcbe5d870f25563e8b",
+    "partial-multi-op-001.json": "6d5b02f00b01dd557dd3c8ee2b13b8cb09ba5e9c6c15e94bea41c3ed7c2f9406",
+    "syntax-alias-001.json": "4bddc94615ed286076639de5446bdd6ca0eb09dad2777d09725151ac8e72b0b2",
+    "unsupported-host-001.json": "fc83c33acdbe7c13fb85b0550a25d5c3f6e4337e1f0ee434a40d0f954cecc6bb",
+    "xml-fallback-001.json": "6d991abefbf627022856b22782f84e1c223f20e9fc96d79ed9242a36fb418b5d"
+  },
+  "corpusSha256": "fa2bae32f237be940024762f78ec9d9f1c9b9e2ba97df0ae292e444009431cbf"
+}

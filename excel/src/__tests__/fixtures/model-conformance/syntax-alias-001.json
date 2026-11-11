@@ -1,0 +1,28 @@
+{
+  "caseId": "syntax-alias-001",
+  "sourceClass": "generic",
+  "transport": "openai-tool-call",
+  "description": "Syntax-only alias usage that should be normalized",
+  "syntheticInput": {
+    "userPrompt": "Fill cells with formula",
+    "workbookContext": {
+      "activeSheet": "CalcSheet",
+      "selectedRange": "B2:B10"
+    }
+  },
+  "modelOutput": {
+    "tool_calls": [
+      {
+        "id": "call_006",
+        "type": "function",
+        "function": {
+          "name": "fill_formula",
+          "arguments": "{\"sheet_name\": \"CalcSheet\", \"range\": \"B2:B10\", \"formula\": \"=A2*2\"}"
+        }
+      }
+    ]
+  },
+  "expectedDisposition": "accepted-normalized",
+  "failureClass": null,
+  "notes": "Uses 'sheet_name' (alias for 'sheet') and 'range' (alias for 'address') - both are valid syntax aliases"
+}

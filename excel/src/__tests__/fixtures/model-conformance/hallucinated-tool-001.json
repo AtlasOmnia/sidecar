@@ -1,0 +1,28 @@
+{
+  "caseId": "hallucinated-tool-001",
+  "sourceClass": "generic",
+  "transport": "openai-tool-call",
+  "description": "Hallucinated/unknown tool name that doesn't exist",
+  "syntheticInput": {
+    "userPrompt": "Add a chart to the workbook",
+    "workbookContext": {
+      "activeSheet": "ChartSheet",
+      "selectedRange": "A1:D10"
+    }
+  },
+  "modelOutput": {
+    "tool_calls": [
+      {
+        "id": "call_007",
+        "type": "function",
+        "function": {
+          "name": "create_excel_chart",
+          "arguments": "{\"sheet\": \"ChartSheet\", \"dataRange\": \"A1:D10\", \"chartType\": \"bar\", \"title\": \"Sales Chart\"}"
+        }
+      }
+    ]
+  },
+  "expectedDisposition": "rejected-unknown-tool",
+  "failureClass": "hallucinated-tool",
+  "notes": "Tool 'create_excel_chart' does not exist; should be 'create_chart'"
+}

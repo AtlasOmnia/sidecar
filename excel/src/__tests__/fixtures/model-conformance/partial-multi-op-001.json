@@ -1,0 +1,28 @@
+{
+  "caseId": "partial-multi-op-001",
+  "sourceClass": "generic",
+  "transport": "openai-tool-call",
+  "description": "Partial multi-operation plan with a later invalid operation",
+  "syntheticInput": {
+    "userPrompt": "Create a table and add comments",
+    "workbookContext": {
+      "activeSheet": "Report",
+      "selectedRange": "A1:E20"
+    }
+  },
+  "modelOutput": {
+    "tool_calls": [
+      {
+        "id": "call_011",
+        "type": "function",
+        "function": {
+          "name": "excel_execute_plan",
+          "arguments": "{\"version\": 1, \"outcome\": \"execute\", \"summary\": \"Create table and add comments\", \"operations\": [{\"op\": \"create_table\", \"sheet\": \"Report\", \"address\": \"A1:E20\", \"hasHeaders\": true}, {\"op\": \"add_comment\", \"sheet\": \"Report\", \"address\": \"A1\", \"comment\": \"Header row\"}, {\"op\": \"delete_sheet\", \"sheet\": \"OldData\"}], \"verification\": [{\"rule\": \"table_exists\", \"sheet\": \"Report\", \"address\": \"A1:E20\"}]}"
+        }
+      }
+    ]
+  },
+  "expectedDisposition": "rejected-invalid-operation",
+  "failureClass": "partial-multi-operation",
+  "notes": "Contains 'delete_sheet' which is a destructive operation excluded from V1"
+}

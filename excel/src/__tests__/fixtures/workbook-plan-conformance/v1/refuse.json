@@ -1,0 +1,41 @@
+{
+  "caseId": "refuse",
+  "provenance": "synthetic",
+  "sourceClass": "generic",
+  "transport": "openai-tool-call",
+  "locale": "en",
+  "syntheticInput": {
+    "userPrompt": "Write values to cells",
+    "workbookContext": {
+      "activeSheet": "Sheet1",
+      "selectedRange": "A1:D10"
+    }
+  },
+  "workbookSeed": {
+    "sheets": [
+      "Sheet1"
+    ],
+    "cells": {
+      "Sheet1!C1": "PRIVATE_CANARY_R6B"
+    }
+  },
+  "confirmation": "none",
+  "faults": {},
+  "modelOutput": {
+    "tool_calls": [
+      {
+        "id": "synthetic",
+        "type": "function",
+        "function": {
+          "name": "excel_execute_plan",
+          "arguments": "{\"version\":1,\"outcome\":\"refuse\",\"message\":\"Synthetic refusal\"}"
+        }
+      }
+    ]
+  },
+  "expect": {
+    "outcome": "refuse",
+    "verification": "not_attempted",
+    "mutationCount": 0
+  }
+}

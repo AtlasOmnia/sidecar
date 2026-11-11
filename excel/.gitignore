@@ -1,0 +1,15 @@
+node_modules/
+dist/
+.tmp/
+.office-addin-dev-certs/
+npm-debug.log*
+hermes-start.log
+.env
+.env.*
+__pycache__/
+*.pyc
+
+node_modules
+dist/
+__pycache__/
+.pytest_cache/

@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Hermes</title>
+    <script src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
+  </head>
+  <body>
+    <main class="app-shell">
+      <header class="topbar">
+        <div class="brand-mark">H</div>
+        <div>
+          <h1>Hermes</h1>
+          <p id="connection-status">Waiting for Excel</p>
+        </div>
+        <span id="privacy-badge" class="privacy-badge">Loading...</span>
+        <button id="settings-button" class="icon-button" type="button" title="Settings" aria-label="Settings">⚙</button>
+      </header>
+
+      <section class="bridge-strip" aria-live="polite">
+        <div class="bridge-copy">
+          <span id="bridge-status" class="bridge-status bridge-disconnected">Office bridge connecting</span>
+          <code id="bridge-session-id" class="bridge-session-id"></code>
+        </div>
+        <button id="copy-bridge-session" class="bridge-copy-button" type="button" disabled>
+          Copy session ID
+        </button>
+      </section>
+      <p id="reconciliation-status" class="reconciliation-status" role="status" aria-live="polite" aria-atomic="true" hidden></p>
+
+      <section id="messages" class="messages" aria-live="polite"></section>
+
+      <!-- Nonblocking checkpoint bar (hidden by default) -->
+      <div id="checkpoint-bar" class="checkpoint-bar hidden">
+        <span class="checkpoint-text">Hermes has been working for 30 seconds.</span>
+        <div class="checkpoint-actions">
+          <button id="checkpoint-stop" class="secondary-button" type="button">Stop</button>
+          <button id="checkpoint-continue" class="primary-button" type="button">Continue</button>
+        </div>
+      </div>
+
+      <!-- Content-free pane-owned confirmation for an exact pending plan. -->
+      <div id="pending-plan-bar" class="checkpoint-bar hidden" aria-live="polite">
+        <span class="checkpoint-text">A workbook change is ready for confirmation.</span>
+        <div class="checkpoint-actions">
+          <button id="pending-plan-stop" class="secondary-button" type="button">Stop</button>
+          <button id="pending-plan-continue" class="primary-button" type="button">Continue</button>
+        </div>
+      </div>
+
+      <footer class="composer">
+        <textarea id="prompt-input" rows="5" placeholder="Ask Hermes to work in this workbook"></textarea>
+        <div class="composer-actions">
+          <button id="stop-button" class="secondary-button" type="button" disabled>Stop</button>
+          <button id="send-button" class="primary-button" type="button">Send</button>
+        </div>
+      </footer>
+    </main>
+
+    <dialog id="settings-dialog" class="settings-dialog">
+      <form method="dialog" class="settings-panel">
+        <header>
+          <h2>Settings</h2>
+          <button id="close-settings-button" class="icon-button" value="cancel" type="submit" aria-label="Close">x</button>
+        </header>
+        <label>
+          Base URL
+          <input id="base-url-input" type="text" autocomplete="off" spellcheck="false" />
+        </label>
+        <label>
+          Model
+          <input id="model-input" type="text" autocomplete="off" spellcheck="false" />
+        </label>
+        <label>
+          API key
+          <input id="api-key-input" type="password" autocomplete="off" spellcheck="false" placeholder="Optional" />
+        </label>
+        <label>
+          Max agent iterations
+          <input id="max-iterations-input" type="number" min="1" max="50" step="1" />
+        </label>
+        <label>
+          <input id="workbook-plan-rollout-input" type="checkbox" />
+          Enable bounded WorkbookPlan execution (advanced)
+        </label>
+        <menu>
+          <button id="save-settings-button" class="primary-button" value="default" type="submit">Save</button>
+        </menu>
+      </form>
+    </dialog>
+  </body>
+</html>

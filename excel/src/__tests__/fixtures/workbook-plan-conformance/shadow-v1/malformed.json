@@ -1,0 +1,55 @@
+{
+  "caseId": "malformed",
+  "provenance": "synthetic",
+  "sourceClass": "generic",
+  "transport": "openai-tool-call",
+  "syntheticInput": {
+    "userPrompt": "Write values to cells",
+    "workbookContext": {
+      "activeSheet": "Sheet1",
+      "selectedRange": "A1:D10"
+    }
+  },
+  "workbookSeed": {
+    "sheets": [
+      "Sheet1"
+    ],
+    "cells": {}
+  },
+  "primary": [
+    {
+      "name": "write_range",
+      "args": {
+        "sheet": "Sheet1",
+        "address": "A1",
+        "values": [
+          [
+            "SYNTHETIC_SHADOW_CANARY"
+          ]
+        ]
+      }
+    }
+  ],
+  "modelOutput": {
+    "tool_calls": [
+      {
+        "id": "synthetic",
+        "type": "function",
+        "function": {
+          "name": "excel_execute_plan",
+          "arguments": "{"
+        }
+      }
+    ]
+  },
+  "usage": {
+    "primary": 10,
+    "shadow": 12
+  },
+  "expect": {
+    "primaryOutcome": "committed",
+    "shadowOutcome": "rejected",
+    "shadowStage": "protocol",
+    "shadowOpCount": 0
+  }
+}

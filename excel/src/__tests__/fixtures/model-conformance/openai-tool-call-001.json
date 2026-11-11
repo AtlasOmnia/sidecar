@@ -1,0 +1,28 @@
+{
+  "caseId": "openai-tool-call-001",
+  "sourceClass": "generic",
+  "transport": "openai-tool-call",
+  "description": "Accepted OpenAI tool-call envelope with valid WorkbookPlan",
+  "syntheticInput": {
+    "userPrompt": "Create a table and add formatting",
+    "workbookContext": {
+      "activeSheet": "Sheet1",
+      "selectedRange": "A1:D10"
+    }
+  },
+  "modelOutput": {
+    "tool_calls": [
+      {
+        "id": "call_005",
+        "type": "function",
+        "function": {
+          "name": "excel_execute_plan",
+          "arguments": "{\"version\": 1, \"outcome\": \"execute\", \"summary\": \"Create table and apply formatting\", \"operations\": [{\"kind\": \"create_table\", \"sheet\": \"Sheet1\", \"address\": \"A1:D10\", \"hasHeaders\": true}, {\"kind\": \"format_range\", \"sheet\": \"Sheet1\", \"address\": \"A1:A1\", \"fillColor\": \"#0000FF\", \"fontColor\": \"#FFFFFF\", \"bold\": true}], \"verification\": [{\"kind\": \"table_exists\", \"sheet\": \"Sheet1\", \"address\": \"A1:D10\"}]}"
+        }
+      }
+    ]
+  },
+  "expectedDisposition": "accepted",
+  "failureClass": null,
+  "notes": "Valid WorkbookPlan with two operations and verification"
+}

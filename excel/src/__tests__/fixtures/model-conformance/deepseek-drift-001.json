@@ -1,0 +1,28 @@
+{
+  "caseId": "deepseek-drift-001",
+  "sourceClass": "deepseek-v4-flash",
+  "transport": "openai-tool-call",
+  "description": "DeepSeek V4 Flash command drift: correct tool name but wrong property names",
+  "syntheticInput": {
+    "userPrompt": "Write sales data to Sheet1 range A1:C3",
+    "workbookContext": {
+      "activeSheet": "Sheet1",
+      "selectedRange": "A1:C3"
+    }
+  },
+  "modelOutput": {
+    "tool_calls": [
+      {
+        "id": "call_001",
+        "type": "function",
+        "function": {
+          "name": "write_range",
+          "arguments": "{\"sheet_name\": \"Sheet1\", \"cell_range\": \"A1:C3\", \"data\": [[\"Product\", \"Q1\", \"Q2\"], [\"Widget\", 100, 150], [\"Gadget\", 200, 250]]}"
+        }
+      }
+    ]
+  },
+  "expectedDisposition": "rejected-syntax-alias",
+  "failureClass": "command-drift",
+  "notes": "Uses 'sheet_name' instead of 'sheet', 'cell_range' instead of 'address', 'data' instead of 'values'"
+}

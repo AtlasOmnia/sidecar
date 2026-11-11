@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "corpusId": "workbook-plan-shadow",
+  "corpusVersion": "1.0.0",
+  "fixtureCount": 8,
+  "files": {
+    "compile_reject.json": "9316e2165d64a7a06e9b9b9f633fa44cb6b8723372ceb346b1d842e4b93a5ec8",
+    "count_mismatch.json": "e793013827ed1ce220e728d8ce4dc227a07d4ee89da19638817421aabb5d85f9",
+    "effect_mismatch.json": "e5ebd3f28d3db95128dbf06e360dc38e0d87a61febe43460a5882c0ee56b6bc6",
+    "equal.json": "ae3800a2e0f479e652eb041506d33ba3e26af39aef97def811279edc988693b4",
+    "malformed.json": "4b8cad818700a64febf11c1e5e94bf47434486f076383348b18eb3b9812c6c3f",
+    "policy_reject.json": "fb9d599764405dd713d5b87975e0e62eef8a3255daac513f93d16a865cb97835",
+    "primitive_denied.json": "5a4dc88f39819a35652a740112cddf2ab2c1cd035829f2693967e3be97c06050",
+    "target_mismatch.json": "7e3dca843dfa4ad3dc2b1a0d8dc6fd30da7cb7a895e2011b0394a2d0c5f16410"
+  },
+  "corpusSha256": "c8a0a814604cd97a42968c7b1eb39abb92e00ac7d38a773fc5aaade0c1f62b10"
+}

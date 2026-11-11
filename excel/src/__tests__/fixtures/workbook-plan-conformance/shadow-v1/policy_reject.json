@@ -1,0 +1,54 @@
+{
+  "caseId": "policy_reject",
+  "provenance": "synthetic",
+  "sourceClass": "generic",
+  "transport": "openai-tool-call",
+  "syntheticInput": {
+    "userPrompt": "Write values to selected cells",
+    "workbookContext": {
+      "activeSheet": "Sheet1",
+      "selectedRange": "A1:D10"
+    }
+  },
+  "workbookSeed": {
+    "sheets": [
+      "Sheet1"
+    ],
+    "cells": {}
+  },
+  "primary": [
+    {
+      "name": "write_range",
+      "args": {
+        "sheet": "Sheet1",
+        "address": "A1",
+        "values": [
+          [
+            "SYNTHETIC_SHADOW_CANARY"
+          ]
+        ]
+      }
+    }
+  ],
+  "modelOutput": {
+    "tool_calls": [
+      {
+        "id": "synthetic",
+        "type": "function",
+        "function": {
+          "name": "excel_execute_plan",
+          "arguments": "{\"version\":1,\"outcome\":\"execute\",\"summary\":\"Synthetic comparison\",\"operations\":[{\"kind\":\"write_values\",\"sheet\":\"Sheet1\",\"address\":\"A20\",\"values\":[[\"SYNTHETIC_SHADOW_CANARY\"]]}],\"verification\":[{\"kind\":\"sentinel_unchanged\",\"sheet\":\"Sheet1\",\"address\":\"C1\",\"expected\":null}]}"
+        }
+      }
+    ]
+  },
+  "usage": {
+    "primary": 10,
+    "shadow": 12
+  },
+  "expect": {
+    "shadowOutcome": "requires_confirmation",
+    "shadowStage": "policy",
+    "shadowOpCount": 0
+  }
+}

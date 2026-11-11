@@ -1,0 +1,55 @@
+{
+  "caseId": "inspect_execute",
+  "provenance": "synthetic",
+  "sourceClass": "generic",
+  "transport": "openai-tool-call",
+  "locale": "en",
+  "syntheticInput": {
+    "userPrompt": "Write values to cells",
+    "workbookContext": {
+      "activeSheet": "Sheet1",
+      "selectedRange": "A1:D10"
+    }
+  },
+  "workbookSeed": {
+    "sheets": [
+      "Sheet1"
+    ],
+    "cells": {
+      "Sheet1!C1": "PRIVATE_CANARY_R6B"
+    }
+  },
+  "confirmation": "none",
+  "faults": {},
+  "modelOutput": [
+    {
+      "tool_calls": [
+        {
+          "id": "synthetic",
+          "type": "function",
+          "function": {
+            "name": "excel_execute_plan",
+            "arguments": "{\"version\":1,\"outcome\":\"inspect\",\"reason\":\"Synthetic context\",\"reads\":[{\"kind\":\"read_range\",\"sheet\":\"Sheet1\",\"address\":\"A1\"}]}"
+          }
+        }
+      ]
+    },
+    {
+      "tool_calls": [
+        {
+          "id": "synthetic",
+          "type": "function",
+          "function": {
+            "name": "excel_execute_plan",
+            "arguments": "{\"version\":1,\"outcome\":\"execute\",\"summary\":\"Synthetic change\",\"operations\":[{\"kind\":\"write_values\",\"sheet\":\"Sheet1\",\"address\":\"A1\",\"values\":[[\"PRIVATE_CANARY_R6B\"]]}],\"verification\":[{\"kind\":\"sentinel_unchanged\",\"sheet\":\"Sheet1\",\"address\":\"B1\",\"expected\":null}]}"
+          }
+        }
+      ]
+    }
+  ],
+  "expect": {
+    "outcome": "committed",
+    "verification": "verified",
+    "mutationCount": 1
+  }
+}

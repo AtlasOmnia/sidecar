@@ -1,0 +1,24 @@
+/* Word-only checkpoint notice. Shared pane layout is in omnia-pane.css. */
+.checkpoint-banner { align-self: stretch; background: var(--panel); border: 1px solid var(--line-control); border-radius: 6px; padding: 12px; }
+.checkpoint-banner-content { display: flex; flex-direction: column; gap: 8px; align-items: center; text-align: center; font-size: 13px; color: var(--caution); }
+.checkpoint-actions { display: flex; gap: 8px; }
+.header-status { flex-wrap: wrap; }
+.omnia-profile-chip { display: inline-block; min-width: 0; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 2px 7px; border: 1px solid var(--line-control); border-radius: 6px; background: var(--panel); color: var(--accent); font-size: 11px; font-weight: 600; }
+.omnia-profile-note { flex: none; min-width: 0; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--muted); font-size: 12px; border-top: 1px solid var(--line); padding-top: 8px; }
+
+/* Sidecar connect panel */
+.desk-connect {
+  display: grid;
+  gap: 8px;
+  margin: 8px 12px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+.desk-connect[hidden] { display: none; }
+.desk-connect p { margin: 0; }
+.desk-connect-code {
+  font: 600 1.25rem/1.2 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  letter-spacing: 0.08em;
+}
+.settings-note { margin: 0; font-size: 0.85rem; line-height: 1.4; }

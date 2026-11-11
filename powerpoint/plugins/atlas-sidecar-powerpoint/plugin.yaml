@@ -1,0 +1,54 @@
+name: atlas-sidecar-powerpoint
+version: 1.1.0
+manifest_version: 2
+author: Atlas Omnia
+license: Apache-2.0
+description: >-
+  Sidecar for PowerPoint — chat with Hermes in a sidebar inside desktop PowerPoint for Mac while
+  Hermes reads, reviews and edits the open document through sidecar_powerpoint_* tools. The sidebar is a static
+  page; this plugin runs its HTTPS loopback bridge (localhost:47650-47654) and forwards the sidebar's chat to
+  your Hermes API server. Each sidebar connects only after you allow it in Hermes (/sidecar-powerpoint); the
+  approval is remembered until /sidecar-powerpoint revoke. Requires one manual user trust step for its local CA.
+python_dependencies:
+  - "cryptography>=43"
+requires_hermes: ">=0.23.0"
+platforms: [macos] # Windows desktop PowerPoint untested
+tags: [office, powerpoint, desktop, sidebar, documents]
+kind: standalone
+requires_env:
+  - name: API_SERVER_KEY
+    description: "Your Hermes API server key (the same API_SERVER_KEY that enables the API server). The sidebar's chat goes to your local API server; the plugin reads this key through Hermes and never stores or shows it."
+    secret: true
+config_schema:
+  addin_base:
+    type: str
+    default: "https://atlasomnia.github.io/sidecar-powerpoint/"
+    label: "Sidebar site"
+    description: "Base URL (https, ending in /) of the site that serves the PowerPoint sidebar build. The bridge accepts requests only from this site's origin."
+  api_server_url:
+    type: str
+    default: "http://127.0.0.1:8642"
+    label: "Hermes API server"
+    description: "Loopback URL of your Hermes API server (http://127.0.0.1:<port>)."
+  autostart:
+    type: bool
+    default: true
+    label: "Start the bridge with the gateway"
+    description: "Start the sidebar bridge when the Hermes gateway (which runs the API server) loads this plugin. Off: it starts on the first /sidecar-powerpoint command or sidecar_powerpoint_* tool call."
+provides_tools:
+  - sidecar_powerpoint_get_presentation_overview
+  - sidecar_powerpoint_read_selected_slides
+  - sidecar_powerpoint_read_all_slides
+  - sidecar_powerpoint_create_slide
+  - sidecar_powerpoint_create_text_slide
+  - sidecar_powerpoint_add_text_box
+  - sidecar_powerpoint_update_slide_text
+  - sidecar_powerpoint_add_shape
+  - sidecar_powerpoint_read_slide_content
+  - sidecar_powerpoint_delete_slide
+  - sidecar_powerpoint_reorder_slide
+  - sidecar_powerpoint_find_and_replace_text
+  - sidecar_powerpoint_list_slide_layouts
+  - sidecar_powerpoint_set_slide_layout
+  - sidecar_powerpoint_format_text
+provides_hooks: []

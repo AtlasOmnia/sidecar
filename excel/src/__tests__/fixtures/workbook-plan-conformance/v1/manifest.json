@@ -1,0 +1,41 @@
+{
+  "version": 1,
+  "corpusId": "workbook-plan-conformance",
+  "corpusVersion": "1.1.0",
+  "files": {
+    "ask.json": "c9f863f7ea21332e568d9a00725f2ea384f10391afcbeaf67f5c0c9262842641",
+    "confirmed.json": "bf922df58eb4977a30c033f8b9002e93e1705b76a7cf9fd32d0536d3cb39a619",
+    "declined.json": "f13f369a61e6d3f906a81d4289b8c3c18650aeaeea281fa14c89073ee8410699",
+    "duplicate.json": "5f3b5bb7cff64460b283cbc98504b39f98557f0f38ac0663170d5e1c1c4669d3",
+    "expired.json": "d3beab14cd4a2c74708280952e26a8af0cc81654f8c681c3efbd46d8fd54370c",
+    "extra_field.json": "429797e498f8d4077ccc408e9e974750792aed8c03bd16874351be587a5c9f6b",
+    "format.json": "c232586583b65051e10561043c2891b053dc489a7145f5ef5bf0164436124819",
+    "inspect_execute.json": "c35b699b8db9a27ccd0cf6a4bd5301c0851101ab5ad3bec5fed3376198836889",
+    "malformed.json": "9b17cf08a8374c91469f9cdd29c8ad82d6cc22c9995b857582fcb8ac38781ae2",
+    "mismatch.json": "3457b8e636c6538808166788f675d80b993a6fcfc706f206d62ae58aaf01d897",
+    "partial.json": "bd03cd467605ffcf3645632d7b1a47069b1a9f170d6190fbc935d913a3254b58",
+    "refuse.json": "fd97591f0bf97753d9a7d9616905e004bff1ca725e5d9f674c2489826dd47a8e",
+    "resource_limit.json": "efe50c714e4598ac2e5566fbb56d81594429c3f852f9aa089a3121e548a11917",
+    "server_route.json": "5c5a8ac2eaff4891138442decf962f754b3c2c354da6a108d8e2ef65db1c047d",
+    "spanish.json": "12d2472c987ba9b6cc2531ff4a134e15af71dc7132f6acf775cf3f0604d40601",
+    "stale.json": "c9355d0cf331717a07ef97a2ac19bf6c89cf4535733b2a99ee0569f10953117d",
+    "table.json": "5200fa0217c6fdf5a7a991cdb754f3f7263556e3e1abaa1d9c12a4a1236a98b7",
+    "unknown_tool.json": "77e0bdc692406fb28bfc636875bb4082dcd82335f940341053ec70f3695cd0d9",
+    "write.json": "1734cd541773240d5c818786781032b9c4da1e6f1ed4d915bec4facd52b0420a",
+    "xml.json": "929fabefef90804496e7cd44c33c344a683ae3fd7a38b9b4c1b3701c552daea6"
+  },
+  "fixtureCount": 20,
+  "corpusSha256": "0d67e082d2c8aecb9cbb7ff6b9e09196fdb122bbc9a8f18e173469ac8957bd5d",
+  "contractDrift": [
+    {
+      "caseId": "openai-tool-call-001",
+      "reasonCode": "legacy_plan_shape_never_accepted",
+      "provenanceCommit": "9d3afdded0ed0a75beef22a736f5818df97c1daf"
+    },
+    {
+      "caseId": "xml-fallback-001",
+      "reasonCode": "legacy_plan_shape_never_accepted",
+      "provenanceCommit": "9d3afdded0ed0a75beef22a736f5818df97c1daf"
+    }
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "caseId": "deepseek-drift-003",
+  "sourceClass": "deepseek-v4-flash",
+  "transport": "openai-tool-call",
+  "description": "DeepSeek V4 Flash command drift: tool name is canonical but 'fill_color'/'font_color' properties drift from camelCase",
+  "syntheticInput": {
+    "userPrompt": "Format cells with fill color",
+    "workbookContext": {
+      "activeSheet": "Sheet1",
+      "selectedRange": "A1:A10"
+    }
+  },
+  "modelOutput": {
+    "tool_calls": [
+      {
+        "id": "call_003",
+        "type": "function",
+        "function": {
+          "name": "format_range",
+          "arguments": "{\"sheet\": \"Sheet1\", \"address\": \"A1:A10\", \"fill_color\": \"#FF0000\", \"font_color\": \"#FFFFFF\"}"
+        }
+      }
+    ]
+  },
+  "expectedDisposition": "rejected-syntax-alias",
+  "failureClass": "command-drift",
+  "notes": "Uses snake_case 'fill_color' and 'font_color' instead of camelCase 'fillColor' and 'fontColor'"
+}

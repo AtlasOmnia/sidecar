@@ -1,0 +1,17 @@
+{
+  "caseId": "xml-fallback-001",
+  "sourceClass": "generic",
+  "transport": "xml-fallback",
+  "description": "Accepted XML fallback envelope with valid WorkbookPlan",
+  "syntheticInput": {
+    "userPrompt": "Write values to cells",
+    "workbookContext": {
+      "activeSheet": "DataSheet",
+      "selectedRange": "A1:C5"
+    }
+  },
+  "modelOutput": "<tool_call>{\"name\":\"excel_execute_plan\",\"arguments\":{\"version\":1,\"outcome\":\"execute\",\"summary\":\"Write data values\",\"operations\":[{\"op\":\"write_values\",\"sheet\":\"DataSheet\",\"address\":\"A1:C5\",\"values\":[[\"ID\",\"Name\",\"Value\"],[1,\"Alpha\",100],[2,\"Beta\",200],[3,\"Gamma\",300],[4,\"Delta\",400]]}],\"verification\":[{\"rule\":\"range_values_equal\",\"sheet\":\"DataSheet\",\"address\":\"A1:A5\",\"expected\":[[\"ID\"],[1],[2],[3],[4]]}]}}</tool_call>",
+  "expectedDisposition": "accepted",
+  "failureClass": null,
+  "notes": "Valid WorkbookPlan via XML fallback transport using production <tool_call>...</tool_call> envelope from src/agent.ts:90-92"
+}

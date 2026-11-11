@@ -1,0 +1,15 @@
+Sidecar for Excel — Copyright 2026 Atlas Omnia
+
+SPDX-License-Identifier: Apache-2.0
+
+plugins/atlas-sidecar-excel/desk_bridge.py follows the loopback-bridge security design of Workbench
+(hermes-office-desktop, Apache-2.0, same author): 127.0.0.1-only bind, exact add-in origin, Host check,
+bounded bodies, metadata-only logs.
+
+The sidebar loads Microsoft's Office.js from appsforoffice.microsoft.com at run time; it is not included here.
+Bundled npm dependencies keep their own licenses (see package-lock.json): marked (MIT),
+DOMPurify (Apache-2.0 or MPL-2.0), and PapaParse (MIT). Retain webpack-generated
+taskpane.*.js.LICENSE.txt in the published site.
+
+Microsoft, Office and Excel are trademarks of Microsoft. Hermes is a Nous Research project.
+No endorsement or affiliation is implied.

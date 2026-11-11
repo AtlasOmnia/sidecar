@@ -1,0 +1,28 @@
+{
+  "caseId": "deepseek-drift-002",
+  "sourceClass": "deepseek-v4-flash",
+  "transport": "openai-tool-call",
+  "description": "DeepSeek V4 Flash command drift: tool name is canonical but the 'range' property drifts from canonical 'address'",
+  "syntheticInput": {
+    "userPrompt": "Create a table in Sheet1 from A1:C10",
+    "workbookContext": {
+      "activeSheet": "Sheet1",
+      "selectedRange": "A1:C10"
+    }
+  },
+  "modelOutput": {
+    "tool_calls": [
+      {
+        "id": "call_002",
+        "type": "function",
+        "function": {
+          "name": "insert_table",
+          "arguments": "{\"sheet\": \"Sheet1\", \"range\": \"A1:C10\", \"hasHeaders\": true}"
+        }
+      }
+    ]
+  },
+  "expectedDisposition": "rejected-syntax-alias",
+  "failureClass": "command-drift",
+  "notes": "Uses 'range' instead of 'address' property, tool name is correct but property alias mismatch"
+}

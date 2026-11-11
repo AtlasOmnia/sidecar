@@ -1,0 +1,3 @@
+scripts/*.sh text eol=lf
+src/taskpane/omnia-tokens.css -text
+src/taskpane/omnia-pane.css -text

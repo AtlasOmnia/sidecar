@@ -1,0 +1,29 @@
+{
+  "caseId": "unsupported-host-001",
+  "sourceClass": "generic",
+  "transport": "openai-tool-call",
+  "description": "Unsupported host outcome - Excel not available",
+  "syntheticInput": {
+    "userPrompt": "Write data to the workbook",
+    "workbookContext": {
+      "activeSheet": null,
+      "selectedRange": null,
+      "hostAvailable": false
+    }
+  },
+  "modelOutput": {
+    "tool_calls": [
+      {
+        "id": "call_012",
+        "type": "function",
+        "function": {
+          "name": "write_range",
+          "arguments": "{\"sheet\": \"Sheet1\", \"address\": \"A1:B2\", \"values\": [[\"a\", \"b\"], [1, 2]]}"
+        }
+      }
+    ]
+  },
+  "expectedDisposition": "rejected-unsupported-host",
+  "failureClass": "unsupported-host",
+  "notes": "Host is not available - execution should be blocked before any Office.js call"
+}

@@ -1,0 +1,36 @@
+{
+  "caseId": "duplicate-write-001",
+  "sourceClass": "generic",
+  "transport": "openai-tool-call",
+  "description": "Duplicate semantic write within one proposed turn",
+  "syntheticInput": {
+    "userPrompt": "Update the sales figures",
+    "workbookContext": {
+      "activeSheet": "Sales",
+      "selectedRange": "A1:C3"
+    }
+  },
+  "modelOutput": {
+    "tool_calls": [
+      {
+        "id": "call_009",
+        "type": "function",
+        "function": {
+          "name": "write_range",
+          "arguments": "{\"sheet\": \"Sales\", \"address\": \"A1:C3\", \"values\": [[\"Product\", \"Q1\", \"Q2\"], [\"Widget\", 100, 150], [\"Gadget\", 200, 250]]}"
+        }
+      },
+      {
+        "id": "call_010",
+        "type": "function",
+        "function": {
+          "name": "write_range",
+          "arguments": "{\"sheet\": \"Sales\", \"address\": \"A1:C3\", \"values\": [[\"Product\", \"Q1\", \"Q2\"], [\"Widget\", 100, 150], [\"Gadget\", 200, 250]]}"
+        }
+      }
+    ]
+  },
+  "expectedDisposition": "rejected-duplicate-write",
+  "failureClass": "duplicate-write",
+  "notes": "Two identical write_range calls to same address with same values in one turn"
+}

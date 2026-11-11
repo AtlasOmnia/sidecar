@@ -1,0 +1,28 @@
+{
+  "caseId": "malformed-json-001",
+  "sourceClass": "generic",
+  "transport": "openai-tool-call",
+  "description": "Malformed JSON in tool call arguments - truncated string",
+  "syntheticInput": {
+    "userPrompt": "Write data to Sheet1",
+    "workbookContext": {
+      "activeSheet": "Sheet1",
+      "selectedRange": "A1:B2"
+    }
+  },
+  "modelOutput": {
+    "tool_calls": [
+      {
+        "id": "call_004",
+        "type": "function",
+        "function": {
+          "name": "write_range",
+          "arguments": "{\"sheet\": \"Sheet1\", \"address\": \"A1:B2\", \"values\": [[\"Name\", \"Score\"], [\"Alice\", 95], [\"Bob\", 87]"
+        }
+      }
+    ]
+  },
+  "expectedDisposition": "rejected-malformed-json",
+  "failureClass": "malformed-json",
+  "notes": "arguments string is truncated - missing closing bracket and brace"
+}

@@ -1,0 +1,15 @@
+node_modules/
+.tmp/
+dist/
+.office-addin-dev-certs/
+npm-debug.log*
+hermes-start.log
+.env
+.env.*
+__pycache__/
+*.pyc
+.hermes/
+/campaign-result.json
+/metadata/iterations/iteration-*.json
+
+node_modules

@@ -1,0 +1,48 @@
+{
+  "name": "sidecar-excel",
+  "version": "1.0.0",
+  "private": true,
+  "packageManager": "npm@10.9.4",
+  "engines": {
+    "node": "22.x"
+  },
+  "description": "Sidecar for Excel: your own Hermes agent in a desktop Excel sidebar.",
+  "scripts": {
+    "build": "webpack --mode production",
+    "test:unit": "vitest run",
+    "test:python-plan-runner": "node scripts/tests/test_python_plan_runner.mjs",
+    "test:workbook-plan-python": "node scripts/run-python-tests.mjs --pytest scripts/tests/test_office_plugin_plan_contract.py scripts/tests/test_companion_plan_execution.py scripts/tests/test_companion_task13.py scripts/tests/test_companion_wire_contract.py",
+    "generate:plugin-schemas": "node scripts/generate-office-plugin-schemas.mjs",
+    "check:plugin-schemas": "node scripts/generate-office-plugin-schemas.mjs --check",
+    "generate:workbook-plan": "node scripts/generate-workbook-plan-contract.mjs",
+    "check:workbook-plan": "node scripts/generate-workbook-plan-contract.mjs --check",
+    "test:watch": "vitest",
+    "test": "npm run check:workbook-plan && vitest run && node scripts/run-python-tests.mjs --pytest scripts/tests",
+    "build:static": "node scripts/build-static.mjs"
+  },
+  "dependencies": {
+    "@types/office-js": "^1.0.477",
+    "dompurify": "^3.2.3",
+    "marked": "^15.0.6",
+    "papaparse": "^5.5.4"
+  },
+  "devDependencies": {
+    "@types/papaparse": "^5.5.2",
+    "copy-webpack-plugin": "^14.0.0",
+    "css-loader": "^7.1.4",
+    "html-webpack-plugin": "^5.6.3",
+    "jsdom": "^27.0.0",
+    "style-loader": "^4.0.0",
+    "ts-loader": "^9.5.2",
+    "typescript": "^5.7.3",
+    "vitest": "^3.2.4",
+    "webpack": "^5.97.1",
+    "webpack-cli": "^6.0.1"
+  },
+  "overrides": {
+    "@hono/node-server": "2.0.11",
+    "adm-zip": "0.6.0",
+    "uuid": "^11.1.1 || ^13.0.0 || ^14.0.1"
+  },
+  "license": "Apache-2.0"
+}

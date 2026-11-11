@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 1024 1024" role="img" aria-label="Hermes Word icon">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#185ABD"/><stop offset="1" stop-color="#2B7CD3"/></linearGradient>
+    <filter id="s"><feDropShadow dx="0" dy="30" stdDeviation="30" flood-opacity="0.35"/></filter>
+  </defs>
+  <rect x="72" y="56" width="880" height="880" rx="220" fill="url(#g)" filter="url(#s)"/>
+  <path d="M220 580 C350 250 720 230 826 338" fill="none" stroke="#C8E0FF" stroke-width="24" stroke-linecap="round" opacity="0.85"/>
+  <path d="M258 474 C420 680 626 724 794 514" fill="none" stroke="white" stroke-width="12" stroke-linecap="round" opacity="0.45"/>
+  <circle cx="770" cy="282" r="34" fill="white" opacity="0.86"/>
+  <text x="512" y="610" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-weight="800" font-size="560" fill="white" stroke="black" stroke-opacity="0.18" stroke-width="18">W</text>
+</svg>
