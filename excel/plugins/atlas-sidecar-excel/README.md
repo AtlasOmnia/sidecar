@@ -107,6 +107,8 @@ For example (replace the placeholder with the actual printed path):
   `security add-trusted-cert -r trustRoot -k "$HOME/Library/Keychains/login.keychain-db" '<plugin-data>/tls/ca.pem'`
 * Windows (untested), PowerShell, your current user's root store, **not** Local Machine:
   `certutil -user -addstore Root '<plugin-data>\tls\ca.pem'`
+  The printed Windows text also shows this CA's SHA-1 thumbprint and the command that later removes exactly
+  this trust from the same store (stop the bridge first): `certutil -user -delstore Root '<thumbprint>'`
 
 The Excel test Mac also has the CA in the System keychain; that entry was not removed or retested here.
 System-keychain trust was not required in our Word and PowerPoint runs, which connected with login-keychain

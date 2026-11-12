@@ -98,6 +98,30 @@ def test_d4_manual_trust_command_user_scope_and_quoted_path(tmp_path, platform, 
     assert not tls.directory.exists()
 
 
+def test_d4_windows_trust_and_removal_target_this_ca_in_the_current_user_root_store(tmp_path):
+    from cryptography.hazmat.primitives import hashes
+    tls = LocalTLS(tmp_path / "it's tls")
+    tls.ensure()
+    thumbprint = x509.load_pem_x509_certificate(tls.ca_path.read_bytes()).fingerprint(hashes.SHA1()).hex().upper()
+    assert tls.ca_thumbprint() == thumbprint and len(thumbprint) == 40
+    lines = tls.trust_instructions("win32").splitlines()
+    add = "certutil -user -addstore Root '" + str(tls.ca_path).replace("'", "''") + "'"
+    remove = f"certutil -user -delstore Root '{thumbprint}'"
+    assert lines.count(add) == 1 and lines.count(remove) == 1
+    assert lines.index(add) < lines.index(remove)
+    text = "\n".join(lines)
+    assert "Current User Trusted Root" in text and "stop the bridge" in text
+    assert "-enterprise" not in text.lower() and "-f " not in text and "LocalMachine" not in text
+    assert "ca-key.pem" not in text and "localhost-key.pem" not in text
+    # Another install's CA gets its own thumbprint; removal never names a shared or guessed identity.
+    other = LocalTLS(tmp_path / "other")
+    other.ensure()
+    assert other.ca_thumbprint() != thumbprint
+    assert f"certutil -user -delstore Root '{other.ca_thumbprint()}'" in other.trust_instructions("win32")
+    # Before the CA exists, only the trust command is shown; no removal is offered for an unknown identity.
+    assert "-delstore" not in LocalTLS(tmp_path / "missing").trust_instructions("win32")
+
+
 def test_excel_ca_name_and_legacy_identity_load(tmp_path):
     from cryptography.hazmat.primitives import hashes
     from cryptography.x509.oid import NameOID

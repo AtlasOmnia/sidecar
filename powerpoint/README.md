@@ -97,6 +97,8 @@ For example (replace the placeholder with the actual printed path):
   `security add-trusted-cert -r trustRoot -k "$HOME/Library/Keychains/login.keychain-db" '<plugin-data>/tls/ca.pem'`
 * Windows, PowerShell, your current user's root store, **not** Local Machine:
   `certutil -user -addstore Root '<plugin-data>\tls\ca.pem'`
+  The printed Windows text also shows this CA's SHA-1 thumbprint and the command that later removes exactly
+  this trust from the same store (stop the bridge first): `certutil -user -delstore Root '<thumbprint>'`
 
 **Disclosure:** For TLS it can only vouch for localhost. The trust command does not limit the certificate to TLS, so protect the key file and remove the trust when you stop using Sidecar. Its critical name constraints permit the DNS `localhost`
 subtree and exactly IP `127.0.0.1/32` (no IPv6). X.509 DNS subtree semantics also permit names below

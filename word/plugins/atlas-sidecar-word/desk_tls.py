@@ -172,12 +172,28 @@ class LocalTLS:
         # Trust this install's CA only; keep hostname and certificate verification enabled.
         return ssl.create_default_context(cafile=str(self.ca_path))
 
+    def ca_thumbprint(self) -> str | None:
+        """SHA-1 thumbprint of this install's CA, the identifier Windows certificate stores use; None if unreadable."""
+        try:
+            from cryptography import x509
+            from cryptography.hazmat.primitives import hashes
+            ca = x509.load_pem_x509_certificate(self.ca_path.read_bytes())
+        except (ImportError, OSError, ValueError):
+            return None
+        return ca.fingerprint(hashes.SHA1()).hex().upper()
+
     def trust_instructions(self, platform: str | None = None) -> str:
         platform = platform or sys.platform
         if platform == "win32":
-            # PowerShell single-quoted literal; do not interpolate an unescaped install path.
+            # PowerShell single-quoted literals; do not interpolate an unescaped install path. The quoted thumbprint
+            # also stays a string where PowerShell would parse an all-digit token as a number.
             path = str(self.ca_path).replace("'", "''")
             command = f"certutil -user -addstore Root '{path}'"
+            thumbprint = self.ca_thumbprint()
+            if thumbprint:
+                command += (f"\nThis adds only this CA (SHA-1 thumbprint {thumbprint}) to your Current User Trusted Root "
+                            "store, not Local Machine. To remove exactly this trust later, stop the bridge and run in "
+                            f"PowerShell:\ncertutil -user -delstore Root '{thumbprint}'")
         elif platform == "darwin":
             command = ('security add-trusted-cert -r trustRoot -k "$HOME/Library/Keychains/login.keychain-db" '
                        + shlex.quote(str(self.ca_path)))

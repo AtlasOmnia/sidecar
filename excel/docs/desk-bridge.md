@@ -87,6 +87,8 @@ command, calls an OS trust API, elevates privileges or installs system-wide trus
 
 * macOS login keychain: `security add-trusted-cert -r trustRoot -k "$HOME/Library/Keychains/login.keychain-db" '<plugin-data>/tls/ca.pem'`
 * Windows PowerShell user root: `certutil -user -addstore Root '<plugin-data>\tls\ca.pem'`
+* Windows removal of exactly this CA later (the printed text includes its SHA-1 thumbprint; stop the bridge first):
+  `certutil -user -delstore Root '<thumbprint>'`
 
 The operator must review and explicitly trust the public CA, then reload Excel. For TLS it can only vouch for localhost. The trust command does not limit the certificate to TLS, so protect the key file and remove the trust when you stop using Sidecar. Planned hardening: TLS-only trust (`-p ssl`) and a server-auth EKU on the CA. TLS constraints:
 critical name constraints permit DNS `localhost` and IP `127.0.0.1/32`, with no IPv6. DNS subtree semantics also
