@@ -10,6 +10,8 @@ module.exports = (_env, argv) => {
 
   return {
     devtool: isDev ? "source-map" : false,
+    // Plugin-bundled sidebar ships readable (unminified) so catalog reviewers can audit it.
+    optimization: { minimize: process.env.SIDECAR_UNMINIFIED !== "1" },
     entry: {
       taskpane: "./src/taskpane/taskpane.ts"
     },

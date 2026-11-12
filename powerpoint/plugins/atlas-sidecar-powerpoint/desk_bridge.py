@@ -29,6 +29,7 @@ import logging
 import os
 import sys
 import secrets
+import shlex
 import threading
 import time
 import urllib.parse
@@ -53,6 +54,27 @@ DEFAULT_API_SERVER_URL = "http://127.0.0.1:8642"
 CODE_ALPHABET = "23456789ABCDEFGHJKMNPQRSTVWXYZ"  # no 0/O/1/I/L/U
 CODE_LENGTH = 8
 STREAM_CHUNK = 64 * 1024
+STATIC_MIME_TYPES = {
+    ".html": "text/html; charset=utf-8",
+    ".js": "text/javascript; charset=utf-8",
+    ".css": "text/css; charset=utf-8",
+    ".svg": "image/svg+xml",
+    ".png": "image/png",
+    ".ico": "image/x-icon",
+    ".json": "application/json; charset=utf-8",
+    ".xml": "application/xml; charset=utf-8",
+    ".txt": "text/plain; charset=utf-8",
+}
+STATIC_CONTENT_SECURITY_POLICY = (
+    "default-src 'self'; object-src 'none'; base-uri 'self'; "
+    "script-src 'self' https://appsforoffice.microsoft.com; "
+    "style-src 'self' 'unsafe-inline' https://appsforoffice.microsoft.com; "
+    "connect-src 'self' https://appsforoffice.microsoft.com; "
+    "img-src 'self' data:; font-src 'self' data:; "
+    "frame-src 'self' https://appsforoffice.microsoft.com; "
+    "frame-ancestors 'self' https://*.office.com https://*.office365.com "
+    "https://*.microsoft365.com https://*.sharepoint.com https://*.officeapps.live.com"
+)
 # Response headers relayed from the API server to the pane (never Set-Cookie, never auth material).
 RELAYED_RESPONSE_HEADERS = ("Content-Type", "X-Hermes-Session-Id")
 
@@ -448,9 +470,10 @@ class ChatProxy:
 # HTTP layer: the app's companion handler, wrapped
 # --------------------------------------------------------------------------------------------------
 
-def make_desk_handler(base: type, app: str) -> type:
-    """Subclass the app's companion handler: Host check, configured origin, approval, chat proxy."""
+def make_desk_handler(base: type, app: str, command: str) -> type:
+    """Subclass the app's companion handler: Host check, configured origin, approval, chat proxy and sidebar."""
     prefix = f"/{app}"
+    static_prefix = f"/{command}/"
     hello, connect, connect_status = f"{prefix}/hello", f"{prefix}/connect", f"{prefix}/connect/status"
     session_route = ("POST", f"{prefix}/session")
     chat = "/v1/chat/completions"
@@ -474,6 +497,76 @@ def make_desk_handler(base: type, app: str) -> type:
 
         def _origin_value(self) -> str:
             return self.headers.get("Origin", "")
+
+        def _request_path(self) -> str:
+            try:
+                parts = getattr(self, "raw_requestline", b"").decode("iso-8859-1").split()
+                target = parts[1] if len(parts) >= 2 else self.path
+                return urllib.parse.urlsplit(target).path
+            except (UnicodeDecodeError, ValueError):
+                return ""
+
+        def _is_static_request(self) -> bool:
+            return self._request_path().startswith(static_prefix)
+
+        def _send_static_response(self, status: int, body: bytes, content_type: str,
+                                  *, head: bool = False) -> None:
+            if status >= 400:
+                self.close_connection = True
+            self.send_response(status)
+            self.send_header("Content-Type", content_type)
+            self.send_header("Content-Length", str(len(body)))
+            self.send_header("X-Content-Type-Options", "nosniff")
+            self.send_header("Referrer-Policy", "no-referrer")
+            self.send_header("Cache-Control", "no-cache")
+            self.send_header("Content-Security-Policy", STATIC_CONTENT_SECURITY_POLICY)
+            self.end_headers()
+            if not head and body:
+                self.wfile.write(body)
+
+        def _send_static_error(self, status: int, message: str, *, head: bool = False) -> None:
+            self._send_static_response(status, message.encode("utf-8"), "text/plain; charset=utf-8", head=head)
+
+        def _serve_sidebar_file(self, raw_path: str, *, head: bool = False) -> None:
+            if not raw_path.startswith(static_prefix):
+                return self._send_static_error(404, "Not Found", head=head)
+            encoded_name = raw_path[len(static_prefix):]
+            if not encoded_name or "%2f" in encoded_name.lower():
+                return self._send_static_error(404, "Not Found", head=head)
+            try:
+                relative_name = urllib.parse.unquote(encoded_name, encoding="utf-8", errors="strict")
+            except (UnicodeDecodeError, ValueError):
+                return self._send_static_error(404, "Not Found", head=head)
+            if (not relative_name or relative_name.startswith("/") or ".." in relative_name
+                    or "\\" in relative_name or "\x00" in relative_name or "%2f" in relative_name.lower()
+                    or any(part == "" for part in relative_name.split("/"))):
+                return self._send_static_error(404, "Not Found", head=head)
+
+            sidebar = Path(__file__).with_name("sidebar")
+            try:
+                root = sidebar.resolve(strict=True)
+                entries: dict[str, str] = {}
+                for line in (sidebar / "SHA256SUMS").read_text(encoding="utf-8").splitlines():
+                    digest, name = line.split("  ", 1)
+                    if (len(digest) != 64 or any(ch not in "0123456789abcdef" for ch in digest)
+                            or not name or name.startswith("/") or ".." in name or "\\" in name
+                            or "\x00" in name or any(part == "" for part in name.split("/"))):
+                        continue
+                    entries[name] = digest
+                expected = entries.get(relative_name)
+                if expected is None:
+                    return self._send_static_error(404, "Not Found", head=head)
+                file_path = (sidebar / relative_name).resolve(strict=True)
+                if not file_path.is_relative_to(root) or not file_path.is_file():
+                    return self._send_static_error(404, "Not Found", head=head)
+                with file_path.open("rb") as asset_file:
+                    body = asset_file.read()
+            except (OSError, UnicodeDecodeError, ValueError):
+                return self._send_static_error(404, "Not Found", head=head)
+            if not hmac.compare_digest(hashlib.sha256(body).hexdigest(), expected):
+                return self._send_static_error(404, "Not Found", head=head)
+            content_type = STATIC_MIME_TYPES.get(Path(relative_name).suffix.lower(), "application/octet-stream")
+            self._send_static_response(200, body, content_type, head=head)
 
         def _check_origin(self) -> bool:
             allowed = self._desk().allowed_origin
@@ -532,9 +625,23 @@ def make_desk_handler(base: type, app: str) -> type:
             self.end_headers()
             self.wfile.write(raw)
 
+        def do_HEAD(self) -> None:  # noqa: N802
+            self._cancel_header_deadline()
+            if self._is_static_request():
+                return self._dispatch("HEAD")
+            self.send_error(501, "Unsupported method ('HEAD')")
+
+        def do_PUT(self) -> None:  # noqa: N802
+            self._cancel_header_deadline()
+            if self._is_static_request():
+                return self._dispatch("PUT")
+            self.send_error(501, "Unsupported method ('PUT')")
+
         # -- routing --
         def do_OPTIONS(self) -> None:  # noqa: N802
             self._cancel_header_deadline()
+            if self._is_static_request():
+                return self._dispatch("OPTIONS")
             start = time.monotonic()
             path, _ = self._parse_url(self.path)
             self._parsed_path = path
@@ -556,9 +663,21 @@ def make_desk_handler(base: type, app: str) -> type:
         def _dispatch(self, method: str) -> None:
             start = time.monotonic()
             path, query = self._parse_url(self.path)
+            raw_path = self._request_path()
             self._parsed_path, self._parsed_query = path, query
+            static_request = raw_path.startswith(static_prefix)
             if not self._host_ok():
+                if static_request:
+                    return self._send_static_error(421, "Unexpected Host", head=method == "HEAD")
                 return self._refuse(421, "Unexpected Host", start)
+            if static_request:
+                origins = self.headers.get_all("Origin", [])
+                if origins and (len(origins) != 1 or not hmac.compare_digest(
+                        origins[0].encode("utf-8"), self._desk().allowed_origin.encode("utf-8"))):
+                    return self._send_static_error(403, "Origin not allowed", head=method == "HEAD")
+                if method not in ("GET", "HEAD"):
+                    return self._send_static_error(405, "Method Not Allowed")
+                return self._serve_sidebar_file(raw_path, head=method == "HEAD")
             route = (method, path)
             if path in desk_paths:
                 if not self._check_origin():
@@ -657,7 +776,7 @@ class DeskBridge:
         self._lock = threading.Lock()
         self._server: Any = None
         self._session_grants: dict[str, str] = {}
-        desk_handler = make_desk_handler(handler_cls, app)
+        desk_handler = make_desk_handler(handler_cls, app, command)
         bridge = self
 
         class DeskServer(server_cls):  # type: ignore[misc, valid-type]
@@ -794,7 +913,9 @@ class DeskRuntime:
                  ask_choice: Optional[Callable[[str, list], Optional[str]]] = None,
                  in_gateway: Callable[[], bool] = _in_gateway, profile: str = "default") -> None:
         self.cfg = appcfg
-        self.addin_base = check_addin_base(addin_base)
+        self._uses_default_addin_base = addin_base in (None, "", appcfg.DEFAULT_ADDIN_BASE)
+        configured_base = appcfg.DEFAULT_ADDIN_BASE if self._uses_default_addin_base else addin_base
+        self.addin_base = check_addin_base(configured_base)
         self.allowed_origin = origin_of(self.addin_base)
         self.api_server_url = api_server_url
         self.store = ApprovalStore(Path(data_dir), appcfg.APP)
@@ -849,10 +970,38 @@ class DeskRuntime:
         refresh = getattr(self.key_provider, "refresh", None)
         if callable(refresh):
             refresh()
-        return self.bridge.ensure_started()
+        port = self.bridge.ensure_started()
+        if self._uses_default_addin_base:
+            self.addin_base = f"https://localhost:{port}/{self.cfg.COMMAND}/"
+            self.allowed_origin = origin_of(self.addin_base)
+            self.bridge.allowed_origin = self.allowed_origin
+        return port
 
     def stop(self) -> None:
         self.bridge.stop()
+
+    def manifest_text(self) -> str:
+        """Write a manifest for the configured sidebar origin and return its Mac sideload command."""
+        try:
+            self.ensure_started()
+            default_base = check_addin_base(self.cfg.DEFAULT_ADDIN_BASE)
+            default_origin = origin_of(default_base)
+            bundled_manifest = Path(__file__).with_name("sidebar") / "manifest.xml"
+            rendered = bundled_manifest.read_text(encoding="utf-8")
+            if default_base not in rendered or "{{" in rendered:
+                raise DeskError("Manifest", "The bundled PowerPoint manifest is invalid")
+            rendered = rendered.replace(default_base, self.addin_base).replace(default_origin, self.allowed_origin)
+            output_path = self.store.data_dir / "manifest.xml"
+            output_path.parent.mkdir(parents=True, exist_ok=True)
+            output_path.write_text(rendered, encoding="utf-8")
+        except DeskError:
+            raise
+        except (OSError, UnicodeDecodeError, ValueError) as exc:
+            raise DeskError("Manifest", f"PowerPoint manifest could not be prepared ({type(exc).__name__})") from None
+        sideload_dir = "~/Library/Containers/com.microsoft.PowerPoint/Data/Documents/wef"
+        instruction = (f"Sideload on Mac: mkdir -p {sideload_dir} && cp {shlex.quote(str(output_path))} "
+                       f"{sideload_dir}/atlas-sidecar-powerpoint.xml")
+        return f"Manifest: {output_path}\n{instruction}"
 
     # -- human-facing text --
     def status_text(self, *, include_trust: bool = False) -> str:
@@ -890,6 +1039,8 @@ class DeskRuntime:
                 self.maybe_start_quietly()
             if verb in ("status", "trust"):
                 return self.status_text(include_trust=verb == "trust")
+            if verb == "manifest":
+                return self.manifest_text()
             if verb in ("revoke", "forget"):
                 return self.revoke_text()
             if verb in ("allow", "approve", "deny", "reject"):
@@ -912,7 +1063,7 @@ class DeskRuntime:
                     return (f"Sidebar request {newest['code']} is waiting. Reply with /{self.cfg.COMMAND} allow "
                             f"{newest['code']} or /{self.cfg.COMMAND} deny {newest['code']}.")
                 return self._decided(self.store.decide(choice == "allow", newest["code"]))
-            return (f"Usage: /{self.cfg.COMMAND} [allow|deny <code>|revoke|status|trust]. With no argument Hermes asks "
+            return (f"Usage: /{self.cfg.COMMAND} [manifest|allow|deny <code>|revoke|status|trust]. With no argument Hermes asks "
                     f"you to Allow or Deny the waiting {self.cfg.APP_TITLE} sidebar.")
         except DeskError as exc:
             return f"Sidecar for {self.cfg.APP_TITLE}: {exc}"
@@ -925,15 +1076,17 @@ class DeskRuntime:
 
     # -- `hermes sidecar-<app>` --
     def cli_setup(self, subparser: Any) -> None:
-        subparser.add_argument("action", choices=["status", "trust", "allow", "deny", "revoke"],
-                               help="show status or manual trust instructions, allow/deny a sidebar, or revoke approval")
+        subparser.add_argument("action", choices=["manifest", "status", "trust", "allow", "deny", "revoke"],
+                               help="write a sideloadable manifest, show status/trust, allow/deny a sidebar, or revoke approval")
         subparser.add_argument("code", nargs="?", default=None, help="the code the sidebar shows (allow/deny)")
         subparser.set_defaults(func=self.cli_run)
 
     def cli_run(self, args: Any) -> int:
         action = getattr(args, "action", "status")
         try:
-            if action in ("status", "trust"):
+            if action == "manifest":
+                print(self.manifest_text())
+            elif action in ("status", "trust"):
                 print(self.status_text(include_trust=action == "trust"))
             elif action == "revoke":
                 removed = self.store.revoke()

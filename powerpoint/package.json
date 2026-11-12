@@ -1,11 +1,12 @@
 {
   "name": "atlas-sidecar-powerpoint",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "private": true,
   "description": "Sidecar for PowerPoint: a static desktop PowerPoint sidebar for your own Hermes agent (bridge runs inside the Hermes plugin).",
   "scripts": {
     "build": "webpack --mode production",
     "build:static": "node scripts/build-static.mjs",
+    "build:sidebar": "SIDECAR_UNMINIFIED=1 npm run build:static -- --base https://localhost:47650/sidecar-powerpoint/ --out plugins/atlas-sidecar-powerpoint/sidebar",
     "generate:plugin-schemas": "node scripts/generate-powerpoint-plugin-schemas.mjs",
     "check:plugin-schemas": "node scripts/generate-powerpoint-plugin-schemas.mjs --check",
     "test": "npm run test:unit && npm run test:plugin",

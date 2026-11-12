@@ -23,8 +23,8 @@ gateway or keychain was changed. Existing private history was not rewritten.
   including one-request editing/readback, Try again recovery after plugin reload and revoke.
   The earlier `3682e5f` run at about 00:01 also covered a second slide, a request open for
   about 24 seconds, reversal and approval after restarting PowerPoint. Both used a private
-  test site via `addin_base` and login-keychain CA trust only. See the README for the full
-  live-test boundaries; the public origin and TLS-only trust remain untested.
+  test site via `addin_base` and login-keychain CA trust only. The plugin-served same-origin
+  default in 1.2.0 has not yet been live-tested in Office; TLS-only trust remains untested.
 
 ## Publication gate / runbook
 
@@ -35,15 +35,14 @@ Only after publication is authorized:
    Keep this checkout's private history private; do not push this branch unchanged.
 2. Fill the catalog's `PUBLISH_TIME_COMMIT_SHA` placeholder with the public pinned
    40-hex commit. It is deliberately not a valid submission pin yet.
-3. Enable GitHub Pages with GitHub Actions as its source. The prepared
+3. Optional, only for an external hosted sidebar: enable GitHub Pages with GitHub Actions as its source. The prepared
    `.github/workflows/pages.yml` builds `dist/` for
-   `https://atlasomnia.github.io/sidecar-powerpoint/` and deploys it. It was not run here.
-4. Verify the public repository and the Pages manifest, taskpane and SHA256SUMS URLs.
+   `https://atlasomnia.github.io/sidecar-powerpoint/` and deploys it. The default plugin-served localhost sidebar needs no Pages deployment.
+4. If publishing that optional external site, verify the repository and Pages manifest, taskpane and SHA256SUMS URLs.
    Retain webpack's bundled license files with the site.
-5. In an isolated install, use the default public origin: Connect, matching-code Allow,
-   one prompt/edit/readback, one upstream request and real answer, restart/revoke.
-   The public origin has not been live-tested. Approval is origin-wide, not path-wide;
-   keep other content on the account-wide Pages origin trusted or move to a dedicated origin.
+5. In an isolated install, exercise the plugin-served localhost default; for an external override, use that exact hosted origin too.
+   Connect, matching-code Allow, one prompt/edit/readback, one upstream request and real answer, restart/revoke.
+   Approval is origin-wide, not path-wide; only configure a hosted origin you trust.
 
 TLS-only trust (`-p ssl`) and a server-auth EKU on the CA remain planned hardening;
 the trust command and CA extension policy were intentionally not changed.

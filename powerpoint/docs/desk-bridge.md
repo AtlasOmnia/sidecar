@@ -5,10 +5,12 @@ App-neutral bridge design for Sidecar for Word, Excel and PowerPoint (`desk_app.
 port range and default site). This PowerPoint bridge uses the verified-localhost-TLS implementation ported from Excel.
 
 ```
-desktop Office sidebar (static page from addin_base, HTTPS)
-   |  https://localhost:<app port>   exact Origin, Host localhost:<actual-port>
+desktop Office sidebar (bundled at /sidecar-powerpoint/, same-origin HTTPS from the plugin bridge by default)
+   |  https://localhost:<actual app port>   exact Origin when present, Host localhost:<actual-port>
    v
 desk bridge (thread inside the Hermes plugin, 127.0.0.1 only)
+   |-- GET/HEAD /sidecar-powerpoint/<file>  checksummed bundled sidebar assets
+   |-- POST/PUT/DELETE /sidecar-powerpoint/* -> 405
    |-- GET  /<app>/hello                 identify (service hermes-desk-<app>)
    |-- POST /<app>/connect               file a connect request -> code, requestId, pollSecret
    |-- POST /<app>/connect/status        pending | denied | expired | approved (+ grant, once)
@@ -37,11 +39,11 @@ PowerPoint needs Try again (or reopen the sidebar) after a plugin reload; Excel 
 reconnect by themselves. Both runs used a private test site via the `addin_base` setting,
 with the CA trusted in the login keychain only.
 Windows desktop PowerPoint is untested. Dark theme, keyboard-only use, PowerPoint for the web
-and TLS-only trust were not tested. The public GitHub Pages origin is first exercised at publication.
+and TLS-only trust were not tested. The plugin-served same-origin default in 1.2.0 has not yet been live-tested in Office.
 After a plugin reload, use Try again or reopen the sidebar to reconnect. After an update, close and reopen the sidebar to load the current pane. Stopping the bridge shuts down and closes
 accepted sockets, including TLS keep-alive connections; the existing overload cleanup and request deadlines remain.
 There is no real undo: Hermes reverses its own edit by editing again, without an Office rollback transaction.
-Default `addin_base`: https://atlasomnia.github.io/sidecar-powerpoint/. Override it for your own site and build the manifest for the same base.
+Default `addin_base`: `https://localhost:47650/sidecar-powerpoint/`; the bridge resolves the first free port in 47650-47654 and serves its bundled sidebar at `https://localhost:<actual-port>/sidecar-powerpoint/`. Run `/sidecar-powerpoint manifest` to write a manifest for that actual port. External HTTPS hosting remains optional through `addin_base` and requires an exactly matching build.
 
 ## Ports
 

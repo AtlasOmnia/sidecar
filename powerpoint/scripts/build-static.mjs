@@ -13,7 +13,7 @@
 import { createHash } from "node:crypto";
 import { spawnSync } from "node:child_process";
 import { createRequire } from "node:module";
-import { mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { dirname, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -71,6 +71,9 @@ function main(argv) {
   const built = spawnSync(process.execPath, [webpackCli, "--mode", "production", "--output-path", out],
     { cwd: repo, stdio: "inherit" });
   if (built.status !== 0) throw new Error("webpack build failed");
+  for (const file of walk(out)) {
+    if (file.toLowerCase().endsWith(".icns")) rmSync(file);
+  }
   mkdirSync(out, { recursive: true });
   const template = readFileSync(join(repo, "manifest.template.xml"), "utf8");
   writeFileSync(join(out, "manifest.xml"), renderManifest(template, base));

@@ -1,14 +1,15 @@
 <!-- SPDX-License-Identifier: Apache-2.0 -->
-# Sidecar for PowerPoint (1.1.0)
+# Sidecar for PowerPoint (1.2.0)
 
 ## Judge quickstart — PowerPoint only (Mac)
 
-Publication candidate: public installation and public-origin smoke are still pending.
-1. After publication, install `hermes plugins install https://github.com/AtlasOmnia/sidecar-powerpoint#plugins/atlas-sidecar-powerpoint --enable`; enable the Hermes API server and start the gateway as described in **Setup** below.
-2. Review and run this install's printed local-CA trust command, download `https://atlasomnia.github.io/sidecar-powerpoint/manifest.xml`, and sideload it into desktop PowerPoint using the instructions below.
-3. Open a blank synthetic file, click **Connect to Hermes**, compare the code in Hermes, then **Allow**. Allow grants the configured origin access to your **Hermes agent and all its tools until revoked**, not per-edit approval.
-4. Ask: “Set slide 1 title to Sidecar Demo and subtitle to Synthetic quarterly update.” Then request an independent document readback. Use native Office Undo where supported; Stop does not roll back edits. Revoke with `/sidecar-powerpoint revoke` when done; removing CA trust is a separate manual step.
-Windows desktop Office is untested. GitHub Pages authority covers the whole configured origin, not just this app's path.
+The default sidebar is bundled with the plugin and served from its HTTPS localhost bridge; no public site or self-hosting is required.
+1. Install `hermes plugins install https://github.com/AtlasOmnia/sidecar-powerpoint#plugins/atlas-sidecar-powerpoint --enable`; enable the Hermes API server and start the gateway as described in **Setup** below.
+2. Review and run this install's printed local-CA trust command. In Hermes, run `/sidecar-powerpoint manifest` (or `hermes sidecar-powerpoint manifest`) to write the manifest for the actual bound port and show the Mac sideload instruction.
+3. Sideload the generated manifest into desktop PowerPoint using the instructions below.
+4. Open a blank synthetic file, click **Connect to Hermes**, compare the code in Hermes, then **Allow**. Allow grants the configured origin access to your **Hermes agent and all its tools until revoked**, not per-edit approval.
+5. Ask: “Set slide 1 title to Sidecar Demo and subtitle to Synthetic quarterly update.” Then request an independent document readback. Use native Office Undo where supported; Stop does not roll back edits. Revoke with `/sidecar-powerpoint revoke` when done; removing CA trust is a separate manual step.
+Windows desktop Office is untested. An optional external `addin_base` override authorizes its exact origin, not just this app's path.
 
 
 **Sidecar by Atlas Omnia.** Your Hermes agent, in the sidebar of Microsoft Excel, Word, and PowerPoint.
@@ -35,10 +36,9 @@ Your agent: it runs on your own Hermes setup, with the models and tools you alre
 Chat with your own Hermes agent in a sidebar inside **desktop PowerPoint for Mac** while Hermes reads,
 reviews and edits the open presentation.
 
-The sidebar is a small static web page that PowerPoint loads. Everything else runs inside the Hermes plugin: it opens a
-loopback bridge on your computer, forwards the sidebar's chat to your Hermes API server, and gives Hermes fifteen
-`sidecar_powerpoint_*` tools that act on the open presentation through the sidebar. No separate service, no proxy to start,
-no Microsoft app registration. HTTPS loopback requires one explicit user trust step for a per-install local CA.
+The plugin serves the bundled static sidebar from its own same-origin HTTPS loopback bridge at
+`https://localhost:<actual-port>/sidecar-powerpoint/`, forwards the sidebar's chat to your Hermes API server, and gives Hermes fifteen
+`sidecar_powerpoint_*` tools that act on the open presentation through the sidebar. No separate service or public web hosting is required; an external HTTPS site is optional through the `addin_base` override. No Microsoft app registration. HTTPS loopback requires one explicit user trust step for a per-install local CA.
 
 ## Status
 
@@ -56,9 +56,9 @@ PowerPoint; the next Connect after revoke asked for approval again.
 
 PowerPoint needs Try again (or reopen the sidebar) after a plugin reload; Excel and Word
 reconnect by themselves. Both runs used a private test site via the `addin_base` setting,
-with the CA trusted in the login keychain only.
-Windows desktop PowerPoint is untested. Dark theme, keyboard-only use, PowerPoint for the web
-and TLS-only trust were not tested. The public GitHub Pages origin is first exercised at publication.
+with the CA trusted in the login keychain only. The plugin-served same-origin default in 1.2.0
+has not yet been live-tested in Office. Windows desktop PowerPoint is untested. Dark theme,
+keyboard-only use, PowerPoint for the web and TLS-only trust were not tested.
 
 ## Setup
 
@@ -72,8 +72,7 @@ You need Hermes (0.23.0 or newer) and desktop PowerPoint (Microsoft 365 for Mac;
    start or restart the gateway: `hermes gateway`. The plugin's bridge starts with it.
 3. **Trust the local bridge CA once**: review and run the single platform-specific command printed when the bridge
    starts (also shown by `/sidecar-powerpoint trust` or `hermes sidecar-powerpoint trust`; plain status does not repeat it). See [Local TLS trust](#local-tls-trust).
-4. **Load the sidebar into PowerPoint**: download [manifest.xml](https://atlasomnia.github.io/sidecar-powerpoint/manifest.xml) from the sidebar site (the plugin setting `addin_base`,
-   see [Settings](#settings)) and sideload it, see [Load the manifest](#load-the-manifest-sideload). Then in PowerPoint:
+4. **Load the sidebar into PowerPoint**: after the bridge starts, run `/sidecar-powerpoint manifest` in Hermes (or `hermes sidecar-powerpoint manifest` in a terminal). It writes `manifest.xml` in the plugin data directory for the actual bound port and prints the Mac sideload instruction; no web hosting is required. See [Load the manifest](#load-the-manifest-sideload). Then in PowerPoint:
    Home > Add-ins > Sidecar for PowerPoint.
 5. **One click**: press **Connect to Hermes** in the sidebar. The sidebar shows a code. In any Hermes chat run
    `/sidecar-powerpoint` and choose **Allow** (Hermes shows the same code). Allow only if the code matches the one in your sidebar. Then ask away.
@@ -126,7 +125,7 @@ disable verification or revert to HTTP. Managed devices may require your adminis
 
 ## Load the manifest (sideload)
 
-The manifest is built for one sidebar site (`npm run build:static -- --base <site>/` writes `dist/manifest.xml`).
+The plugin bundles and serves the default sidebar at `https://localhost:<actual-port>/sidecar-powerpoint/`; no static-site hosting is required. Run `/sidecar-powerpoint manifest` (or `hermes sidecar-powerpoint manifest`) to write a manifest for the bridge's actual bound port into plugin data and print the sideload instruction. For an optional external site, build with `npm run build:static -- --base https://your-site.example/powerpoint/` and configure the same URL as `addin_base`.
 
 **macOS** (Word, Excel and PowerPoint read add-in manifests from their own `wef` folder):
 
@@ -161,13 +160,13 @@ Plugin settings (`plugins.entries.atlas-sidecar-powerpoint.settings` in `config.
 
 | Setting | Default | Meaning |
 | --- | --- | --- |
-| `addin_base` | `https://atlasomnia.github.io/sidecar-powerpoint/` | HTTPS sidebar site; build the manifest for the same base. The bridge accepts only its origin (the whole host, not its path). Public origin first exercised at publication. |
+| `addin_base` | `https://localhost:47650/sidecar-powerpoint/` | Default is served by the plugin at `https://localhost:<actual-port>/sidecar-powerpoint/` on the first free port in 47650-47654; the runtime resolves the actual port. An external HTTPS site is optional via this override, and the bridge accepts only that exact origin. |
 | `api_server_url` | `http://127.0.0.1:8642` | Your Hermes API server (loopback only). Chat uses `/p/<profile>/v1/chat/completions` for the owning named profile, or `/v1/chat/completions` for default. An explicit `/p/<profile>` base path is allowed only for the same profile. |
 | `autostart` | `true` | Start the bridge when the gateway loads the plugin; off: on the first `/sidecar-powerpoint` or `sidecar_powerpoint_*` call. |
 
-## Use your own sidebar site
+## Optional: use your own sidebar site
 
-Set the active profile's setting to an HTTPS URL ending in `/`:
+The bundled same-origin sidebar works without any hosting. If you choose to use an external site, set the active profile's `addin_base` to an HTTPS URL ending in `/` and build for exactly that URL:
 
 ```sh
 hermes config set plugins.entries.atlas-sidecar-powerpoint.settings.addin_base https://sidebar.example.org/powerpoint/
@@ -178,8 +177,7 @@ npm run build:static -- --base https://sidebar.example.org/powerpoint/
 Host `dist/` unchanged at that URL, including `manifest.xml`, `SHA256SUMS` and bundled license files.
 Reload the plugin/gateway, sideload that site's manifest and reopen the sidebar. The plugin reads
 `addin_base` through `ctx.get_config("addin_base", ...)`, not an environment variable or slash command.
-Use a dedicated origin you control: approval covers the whole host. The default GitHub Pages origin
-is shared with other AtlasOmnia Pages sites, not isolated by the `/sidecar-powerpoint/` path.
+Use a dedicated origin you control: approval covers the whole host.
 
 ## Safety, in short
 
@@ -209,9 +207,7 @@ Use a site you control or trust; open only documents you trust. The Allow questi
   Hermes itself uses your configured model/provider and tools; local bridge transport does not imply local-only inference.
 * **Files:** `plugin-data/atlas-sidecar-powerpoint/approvals.json` and `pending.json` (hashes and metadata), plus
   `tls/ca.pem`, `tls/localhost.pem` (public certificates), `tls/ca-key.pem` and `tls/localhost-key.pem` (private keys).
-* **The sidebar page** is served from `addin_base`, outside this plugin's catalog pin; it loads Microsoft's
-  Office.js from `appsforoffice.microsoft.com` and sends presentation data only to the HTTPS localhost bridge. Build it yourself at
-  the pinned commit with `npm ci && npm run build:static -- --base <your site>/`; the build writes `SHA256SUMS`.
+* **The sidebar page** is bundled with the plugin and served by its HTTPS localhost listener at `https://localhost:<actual-port>/sidecar-powerpoint/`; it loads Microsoft's Office.js from `appsforoffice.microsoft.com` and sends presentation data only to the same-origin localhost bridge. An external HTTPS host is optional through `addin_base`; if selected, build it yourself with `npm ci && npm run build:static -- --base <your site>/` and serve the generated files unchanged.
 * **Same author, separate lineage:** Atlas Omnia also publishes Workbench (Office for the web inside Hermes
   Desktop). This plugin is the desktop-Office sidebar; its tools use their own `sidecar_powerpoint_` prefix so both can be
   installed together.

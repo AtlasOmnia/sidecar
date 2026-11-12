@@ -41,7 +41,7 @@ describe("Sidecar for PowerPoint manifest template (offline contract, not the on
     expect(Array.from(xml.getElementsByTagNameNS(ns, "AppDomain")).map(node => node.textContent)).toEqual([ORIGIN]);
     const plugin = readFileSync("plugins/atlas-sidecar-powerpoint/plugin.yaml", "utf8");
     expect(plugin).toContain("cryptography>=43");
-    expect(plugin).toContain(BASE);
+    expect(plugin).toContain("https://localhost:47650/sidecar-powerpoint/");
   });
   it("resolves every resource reference", () => {
     const resources = new Map(["Image", "Url", "String"].flatMap(tag => Array.from(xml.getElementsByTagNameNS(bt, tag))).map(node => [node.getAttribute("id"), node]));

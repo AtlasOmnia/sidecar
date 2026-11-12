@@ -119,8 +119,16 @@ class CompanionHandler(ResponseDeadlineMixin, BaseHTTPRequestHandler):
         caps = dict(_REQUEST_BODY_CAPS)
         desk = getattr(self._server_ref, "desk", None)
         desk_routes = set()
+        static_route = False
         if desk is not None:
             from ..desk_bridge import MAX_CHAT_BODY, MAX_CONNECT_BODY
+            try:
+                request_line = getattr(self, "raw_requestline", b"")
+                request_parts = request_line.decode("iso-8859-1").split()
+                raw_path = urllib.parse.urlsplit(request_parts[1]).path if len(request_parts) >= 2 else ""
+            except (UnicodeDecodeError, ValueError):
+                raw_path = ""
+            static_route = raw_path.startswith(f"/{desk.command}/")
             desk_routes = {
                 ("GET", f"/{desk.app}/hello"),
                 ("POST", f"/{desk.app}/connect"),
@@ -143,9 +151,9 @@ class CompanionHandler(ResponseDeadlineMixin, BaseHTTPRequestHandler):
         elif error is not None or length is None:
             return self._reject_request_framing(400, "Bad Request: invalid Content-Length")
         self._request_content_length = length
-        if length and self.command in {"DELETE", "GET", "OPTIONS"}:
+        if length and self.command in {"DELETE", "GET", "OPTIONS"} and not static_route:
             return self._reject_request_framing(400, "Bad Request: unexpected request body")
-        known = (route_key in desk_routes or route_key in ORIGIN_ONLY_ROUTES or route_key in PANE_AUTH_ROUTES
+        known = (static_route or route_key in desk_routes or route_key in ORIGIN_ONLY_ROUTES or route_key in PANE_AUTH_ROUTES
                  or route_key in PLUGIN_KEY_ROUTES
                  or (self.command == "OPTIONS" and path in OPTIONS_ROUTES))
         if length and not known:
@@ -153,6 +161,8 @@ class CompanionHandler(ResponseDeadlineMixin, BaseHTTPRequestHandler):
                 self.close_connection = True
             else:
                 return self._reject_request_framing(404, "Not Found")
+        if length and static_route:
+            self.close_connection = True
         self._request_framing_ready = True
         self._cancel_header_deadline()
         return True

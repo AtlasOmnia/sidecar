@@ -21,8 +21,9 @@ it("keeps installed documentation identical and discloses TLS/agent authority", 
 
 it("prepares the decided Pages build without an author-private default", () => {
   const base = "https://atlasomnia.github.io/sidecar-powerpoint/";
-  for (const path of ["plugins/atlas-sidecar-powerpoint/desk_app.py", "plugins/atlas-sidecar-powerpoint/plugin.yaml"])
-    expect(readFileSync(path, "utf8")).toContain(base);
+  // 1.2.0: the plugin serves the sidebar itself; the Pages build remains an optional external host.
+  expect(readFileSync("plugins/atlas-sidecar-powerpoint/desk_app.py", "utf8")).toContain('DEFAULT_ADDIN_BASE = f"https://localhost:{PORTS[0]}/{COMMAND}/"');
+  expect(readFileSync("plugins/atlas-sidecar-powerpoint/plugin.yaml", "utf8")).toContain("https://localhost:47650/sidecar-powerpoint/");
   expect(readFileSync(".github/workflows/pages.yml", "utf8")).toContain(`npm ci && npm run build:static -- --base ${base}`);
   const manifest = readFileSync("manifest.template.xml", "utf8");
   expect(manifest).toContain('id="GetStarted.Description" DefaultValue="Connect your Hermes agent to read and edit this presentation from the sidebar."');

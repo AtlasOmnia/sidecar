@@ -133,12 +133,12 @@ def register(ctx: Any) -> None:
     if hasattr(ctx, "register_command"):
         ctx.register_command(
             desk_app.COMMAND, runtime.slash,
-            description="Allow, deny or revoke the Sidecar for PowerPoint sidebar; status",
-            args_hint="[allow|deny <code>|revoke|status|trust]",
+            description="Create a sideloadable manifest, allow/deny/revoke the Sidecar for PowerPoint sidebar; status",
+            args_hint="[manifest|allow|deny <code>|revoke|status|trust]",
         )
     if hasattr(ctx, "register_cli_command"):
         ctx.register_cli_command(
-            name=desk_app.COMMAND, help="Sidecar for PowerPoint: status, allow/deny a sidebar, revoke",
+            name=desk_app.COMMAND, help="Sidecar for PowerPoint: create a sideloadable manifest, status, allow/deny, revoke",
             setup_fn=runtime.cli_setup, handler_fn=runtime.cli_run,
         )
     if hasattr(ctx, "on_unload"):

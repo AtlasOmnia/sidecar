@@ -284,6 +284,121 @@ def test_unexpected_host_header_is_refused(tmp_path: Path) -> None:
             assert status == 421
 
 
+def test_default_loopback_sidebar_is_served_from_the_bridge(tmp_path: Path) -> None:
+    rt = DeskRuntime(appcfg=_AppCfg(_free_ports(2)), data_dir=tmp_path,
+                     addin_base=desk_app.DEFAULT_ADDIN_BASE, api_server_url="http://127.0.0.1:9",
+                     key_provider=KeyProvider(lambda: API_KEY), in_gateway=lambda: False)
+    assert desk_app.DEFAULT_ADDIN_BASE == f"https://localhost:{desk_app.PORTS[0]}/{desk_app.COMMAND}/"
+    with running(rt):
+        assert rt.addin_base == f"https://localhost:{rt.bridge.port}/{desk_app.COMMAND}/"
+        assert rt.allowed_origin == f"https://localhost:{rt.bridge.port}"
+        status, headers, body = request(rt, "GET", f"/{desk_app.COMMAND}/taskpane.html", origin=None)
+        assert status == 200
+        assert headers["Content-Type"].startswith("text/html")
+        assert body is not None
+        assert b"<html" in body.lower()
+        csp = headers["Content-Security-Policy"]
+        for directive in ("script-src", "style-src", "connect-src", "frame-ancestors"):
+            assert directive in csp
+        assert "'self'" in csp and "appsforoffice.microsoft.com" in csp
+        assert headers["X-Content-Type-Options"] == "nosniff"
+        assert headers["Referrer-Policy"] == "no-referrer"
+        assert headers["Cache-Control"] == "no-cache"
+        status, head_headers, head_body = request(rt, "HEAD", f"/{desk_app.COMMAND}/taskpane.html", origin=None)
+        assert status == 200 and head_body is None
+        assert head_headers["Content-Length"] == str(len(body))
+        assert "X-Frame-Options" not in head_headers
+
+
+def test_sidebar_static_route_fails_closed(tmp_path: Path) -> None:
+    rt = DeskRuntime(appcfg=_AppCfg(_free_ports(2)), data_dir=tmp_path,
+                     addin_base=desk_app.DEFAULT_ADDIN_BASE, api_server_url="http://127.0.0.1:9",
+                     key_provider=KeyProvider(lambda: API_KEY), in_gateway=lambda: False)
+    with running(rt):
+        prefix = f"/{desk_app.COMMAND}"
+        for path in (f"{prefix}/missing.js", f"{prefix}/../desk_bridge.py",
+                     f"{prefix}/%2e%2e/desk_bridge.py", f"{prefix}/nested%2ftaskpane.html",
+                     f"{prefix}/%2ftaskpane.html", f"{prefix}//taskpane.html",
+                     f"{prefix}/bad%00.js", f"{prefix}/bad%5c.js"):
+            status, _, _ = request(rt, "GET", path, origin=None)
+            assert status == 404, path
+        for method in ("POST", "PUT", "DELETE"):
+            status, _, _ = request(rt, method, f"{prefix}/taskpane.html", origin=None)
+            assert status == 405, method
+        status, headers, _ = request(rt, "GET", f"{prefix}/taskpane.html", origin="https://evil.example")
+        assert status == 403
+        assert "Access-Control-Allow-Origin" not in headers
+
+
+def test_default_addin_base_can_be_unset_and_resolves_to_bound_port(plugin_env, monkeypatch) -> None:
+    monkeypatch.delenv("_HERMES_GATEWAY", raising=False)
+    ctx = FakeCtx({})
+    plugin_env.register(ctx)
+    rt = plugin_env._RUNTIME
+    assert rt is not None
+    with running(rt):
+        assert rt.addin_base == f"https://localhost:{rt.bridge.port}/{desk_app.COMMAND}/"
+        assert rt.allowed_origin == f"https://localhost:{rt.bridge.port}"
+
+
+def test_nondefault_addin_base_keeps_its_exact_origin_and_static_route(tmp_path: Path) -> None:
+    rt = DeskRuntime(appcfg=_AppCfg(_free_ports(2)), data_dir=tmp_path,
+                     addin_base=ADDIN_BASE, api_server_url="http://127.0.0.1:9",
+                     key_provider=KeyProvider(lambda: API_KEY), in_gateway=lambda: False)
+    with running(rt):
+        assert rt.addin_base == ADDIN_BASE
+        assert rt.allowed_origin == ORIGIN
+        status, _, _ = request(rt, "GET", f"/{desk_app.COMMAND}/taskpane.html", origin=None)
+        assert status == 200
+        status, _, _ = request(rt, "GET", f"/{desk_app.COMMAND}/taskpane.html", origin=ORIGIN)
+        assert status == 200
+
+
+def test_manifest_command_writes_the_current_manifest_and_sideload_instruction(tmp_path: Path, capsys) -> None:
+    ports = _free_ports(2)
+    blocker = socket.socket()
+    blocker.bind(("127.0.0.1", ports[0]))
+    blocker.listen(1)
+    rt = DeskRuntime(appcfg=_AppCfg(ports), data_dir=tmp_path,
+                     addin_base=desk_app.DEFAULT_ADDIN_BASE, api_server_url="http://127.0.0.1:9",
+                     key_provider=KeyProvider(lambda: API_KEY), in_gateway=lambda: False)
+    try:
+        with running(rt):
+            assert rt.bridge.port == ports[1]
+            text = rt.slash("manifest")
+            manifest_path = tmp_path / "manifest.xml"
+            assert str(manifest_path) in text
+            assert text.count("\n") == 1
+            manifest = manifest_path.read_text(encoding="utf-8")
+            assert f"https://localhost:{rt.bridge.port}/{desk_app.COMMAND}/taskpane.html" in manifest
+            assert f"<AppDomain>https://localhost:{rt.bridge.port}</AppDomain>" in manifest
+            assert "https://localhost:47650/sidecar-powerpoint/" not in manifest
+            class Args:
+                action = "manifest"
+            assert rt.cli_run(Args) == 0
+            cli_output = capsys.readouterr().out
+            assert str(manifest_path) in cli_output
+            assert "~/Library/Containers/com.microsoft.PowerPoint/Data/Documents/wef/" in cli_output
+            assert "cp " in cli_output
+    finally:
+        blocker.close()
+
+
+def test_bundled_sidebar_files_match_sha256sums() -> None:
+    sidebar = desk_loader.PLUGIN_DIR / "sidebar"
+    sums = sidebar / "SHA256SUMS"
+    assert sums.is_file()
+    entries = {}
+    for line in sums.read_text(encoding="utf-8").splitlines():
+        digest, name = line.split("  ", 1)
+        entries[name] = digest
+    assert "taskpane.html" in entries
+    assert all((sidebar / name).is_file() for name in entries)
+    import hashlib
+    assert all(hashlib.sha256((sidebar / name).read_bytes()).hexdigest() == digest
+               for name, digest in entries.items())
+
+
 # ------------------------------------------------------------------------------------------------
 # approval: required, deny, allow, remembered, revoke
 # ------------------------------------------------------------------------------------------------

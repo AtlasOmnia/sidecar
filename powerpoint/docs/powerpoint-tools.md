@@ -36,4 +36,4 @@ PowerPoint needs Try again (or reopen the sidebar) after a plugin reload; Excel 
 reconnect by themselves. Both runs used a private test site via the `addin_base` setting,
 with the CA trusted in the login keychain only.
 Windows desktop PowerPoint is untested. Dark theme, keyboard-only use, PowerPoint for the web
-and TLS-only trust were not tested. The public GitHub Pages origin is first exercised at publication. There is no real undo: Hermes reverses an edit by editing again. Save a copy before important changes.
+and TLS-only trust were not tested. The plugin-served same-origin default in 1.2.0 has not yet been live-tested in Office. There is no real undo: Hermes reverses an edit by editing again. Save a copy before important changes.
