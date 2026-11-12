@@ -55,12 +55,13 @@ def test_cli_inherited_gateway_never_listens(plugin_env, monkeypatch, command):
 def test_status_quiet_explicit_trust_available(tmp_path, capsys):
     rt = make_runtime(tmp_path)
     rt.bridge.tls.ensure()
+    trust = rt.bridge.tls.trust_instructions()  # this platform's command (macOS add-trusted-cert, Windows certutil)
     assert rt.cli_run(SimpleNamespace(action="status")) == 0
-    assert "add-trusted-cert" not in capsys.readouterr().out
-    assert "add-trusted-cert" not in rt.slash("status")
+    assert trust not in capsys.readouterr().out
+    assert trust not in rt.slash("status")
     assert rt.cli_run(SimpleNamespace(action="trust")) == 0
-    assert "add-trusted-cert" in capsys.readouterr().out
-    assert "add-trusted-cert" in rt.slash("trust")
+    assert trust in capsys.readouterr().out
+    assert trust in rt.slash("trust")
 
 
 @pytest.mark.parametrize("name", ["LICENSE", "NOTICE", "README.md"])

@@ -1,2 +1,4 @@
+# Check out text as LF on every OS: tests pin SHA-256 and byte-identical copies of these files.
+* text=auto eol=lf
 scripts/*.sh text eol=lf
 src/taskpane/omnia-pane.css -text

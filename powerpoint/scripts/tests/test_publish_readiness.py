@@ -46,8 +46,9 @@ def test_inherited_gateway_cli_never_starts_listener(tmp_path, monkeypatch, comm
 def test_plain_status_does_not_repeat_trust(tmp_path):
     rt = make_runtime(tmp_path)
     rt.bridge.tls.ensure()
-    assert "add-trusted-cert" not in rt.status_text()
-    assert "add-trusted-cert" in rt.slash("trust")
+    trust = rt.bridge.tls.trust_instructions()  # this platform's command (macOS add-trusted-cert, Windows certutil)
+    assert trust not in rt.status_text()
+    assert trust in rt.slash("trust")
 
 
 def test_installed_license_and_notice_match_root():

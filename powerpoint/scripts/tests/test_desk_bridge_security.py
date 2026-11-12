@@ -124,10 +124,19 @@ def make_runtime(data_dir: Path, *, api_url: str = "http://127.0.0.1:9", choice:
                        ask_choice=(lambda q, c: choice), in_gateway=lambda: gateway)
 
 
+class _IPv4LocalhostHTTPS(http.client.HTTPSConnection):
+    """Connect to 127.0.0.1, where the bridge listens, and verify the certificate for localhost. Resolving the name
+    localhost can try ::1 first, which costs about two seconds per request on some Windows hosts."""
+
+    def connect(self) -> None:
+        self.sock = self._context.wrap_socket(socket.create_connection(("127.0.0.1", self.port), self.timeout),
+                                              server_hostname=self.host)
+
+
 def request(runtime: DeskRuntime, method: str, path: str, body=None, headers=None, origin: str | None = ORIGIN,
             host: str | None = None):
     port = runtime.bridge.port
-    conn = http.client.HTTPSConnection("localhost", port, timeout=10,
+    conn = _IPv4LocalhostHTTPS("localhost", port, timeout=10,
                                       context=ssl.create_default_context(cafile=str(runtime.store.data_dir / "tls/ca.pem")))
     hdrs = {"Host": host or f"localhost:{port}"}
     if origin is not None:
