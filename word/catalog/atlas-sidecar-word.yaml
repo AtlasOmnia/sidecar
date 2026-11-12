@@ -1,8 +1,8 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright 2026 Atlas Omnia
 # DRAFT catalog entry (not submitted). Publication is a separate authorized run.
-# Publish a fresh-root snapshot, fill sha with its reviewed 40-hex commit, deploy Pages and
-# live-test the public origin. The installer may override addin_base; bump version with sha.
+# Publish a fresh-root snapshot, fill sha with its reviewed 40-hex commit and live-test the plugin-served
+# sidebar (deploy Pages only for the optional hosted origin). The installer may override addin_base; bump version with sha.
 name: atlas-sidecar-word
 title: "Sidecar for Word"
 repo: https://github.com/AtlasOmnia/sidecar-word
@@ -23,7 +23,7 @@ known_issues:
   - "Historical pre-repair failure, superseded by accepted d4d0de9 repair: tested live in desktop Word for Mac on 2026-11-11 at about 00:29, with the plugin and sidebar built from 7eaf1fc. Connect and Allow worked. The prompt “Write the line Quarterly Summary as a Heading 1, then one short paragraph about fruit prices” wrote both paragraphs, which were read back from the document, but the first line ended as Normal, not Heading 1. OOXML merged the heading/body before an apply_edit_plan search failed with SearchStringInvalidOrTooLong on a retained 312-character ASCII find. Later recovery restored separate text paragraphs, but final style readback was Normal; the precise style-loss operation is unisolated. Revoke dropped the sidebar to “needs your OK”. Earlier the same night at 2387154 (historical run): heading text and a bulleted list written with readback; Heading 1 style applied when asked; reversal on request removed the text but left empty paragraphs (no real undo). Plugin reload with the sidebar open reconnected by itself; approval was remembered after restarting Word; the next Connect after revoke asked for approval again. The sidebar was served from a private test site via addin_base; the CA was trusted in the login keychain only. Windows desktop Word is not tested. Dark theme, keyboard-only use, Word for the web, the public GitHub Pages origin, and TLS-only trust are not tested."
   - "Retained evidence identifies the failed search as 312 ASCII characters, beyond Word’s 255-character search bound. OOXML had already merged the heading/body before that failure; final Heading 1 was Normal, but the exact operation losing style remains unisolated. Accepted d4d0de9 repair passed 429 JavaScript and 213 Python tests and bounded native Word 16.114.4/macOS 27.2 tests for heading/body styles, targeted repair, search boundaries, short-edit native Office Undo and revoke. Picture-only paragraph sharing, arbitrary rich formatting, fields/content controls and comprehensive native Unicode/5000-character replacement remain unqualified. The repaired bounds are: source and encoded queries are capped at 255 UTF-16 units, replacement capacity stays 5000, actual styles are read back, and failed searches must stop destructive recovery. Guidance is not a hard execution fence; use native Office Undo for recovery after uncertain mutations."
   - "The sidebar must reach https://localhost from its HTTPS page with the local CA manually trusted for the current user. Local network policies may still block it; backend TLS tests are not live Office acceptance."
-  - "The installer can override addin_base. The public default is https://atlasomnia.github.io/sidecar-word/; first public-origin live test is at publication. Planned hardening: TLS-only trust (-p ssl) and a server-auth EKU on the CA."
+  - "The installer can override addin_base. The default is the plugin-served sidebar at https://localhost:<actual-port>/sidecar-word/; the optional public Pages origin https://atlasomnia.github.io/sidecar-word/ is first live-tested at publication. Planned hardening: TLS-only trust (-p ssl) and a server-auth EKU on the CA."
 capabilities:
   provides_tools:
     - sidecar_word_get_document_overview

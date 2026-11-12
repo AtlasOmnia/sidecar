@@ -11,7 +11,8 @@ not whole-release acceptance and does not enable settings or adopt a deployment.
   replay, cancellation, session/document rotation, partial/unknown execution and confirmation expiry
   (the tests' historical RB5 label). Harness preparation is not proof those hosts passed.
 - Verify installed guidance and actual provider behavior; generated repository guidance alone proves neither.
-- Record dependency/lockfile review, `npm audit` and `npm run validate` results. Do not silently change dependencies.
+- Record dependency/lockfile review and `npm audit` results. This package defines no `validate` npm script; record any
+  separate online manifest validation as its own result. Do not silently change dependencies.
 - Keep full WorkbookPlan native acceptance (historically called Task 23) separate from the limited README smoke.
   HOLD in older gate records means missing acceptance evidence, not a blanket prohibition on public release.
 

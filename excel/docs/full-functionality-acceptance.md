@@ -16,11 +16,10 @@ https://localhost:3000/taskpane.html?fullFunctionalityAcceptance=1
 
 The URL may contain exactly one nonempty `_host_Info` parameter supplied by Office. It may not contain a fragment, unknown parameter, duplicate parameter, empty metadata value, or the focused harness query `?acceptance=1`. The normal production build fails closed and does not install this global.
 
-Build and serve the acceptance artifact with:
-
-```bash
-NODE_ENV=development PYTHON="$HOME/.hermes/hermes-agent/venv/bin/python" HERMES_OFFICE_ACCEPTANCE=1 npm run dev-server
-```
+Building and serving the acceptance artifact needs a `dev-server` npm script run with `NODE_ENV=development`, the Hermes
+Python as `PYTHON` and `HERMES_OFFICE_ACCEPTANCE=1`. This package currently defines no `dev-server` script
+(see `package.json`), and the controller below refuses to start without one, so this lane cannot be started from
+this checkout until that script is restored.
 
 For the server/readiness controller, use:
 
@@ -28,7 +27,7 @@ For the server/readiness controller, use:
 node scripts/run-full-excel-acceptance.mjs
 ```
 
-The controller starts the repository's `webpack-cli serve --mode development` directly with the same environment as `npm run dev-server`, waits for the exact HTTPS URL and acceptance-only dynamic chunk markers, then prints the URL and:
+The controller starts the repository's `webpack-cli serve --mode development` directly with the same environment as that `dev-server` script, waits for the exact HTTPS URL and acceptance-only dynamic chunk markers, then prints the URL and:
 
 ```text
 await window.__hermesExcelFullFunctionalityAcceptance.run()

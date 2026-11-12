@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { expect, it } from "vitest";
 
@@ -25,4 +25,21 @@ it("keeps installation and live-acceptance claims bounded across public docs", (
   expect(read(".github/workflows/pages.yml")).toContain("npm ci && npm run build:static -- --base https://atlasomnia.github.io/sidecar-excel/");
   expect(read("LICENSE")).toContain("Apache License");
   expect(read("NOTICE")).toContain("Atlas Omnia");
+});
+
+it("documents only npm scripts this package defines and the plugin-served default origin", () => {
+  const root = resolve(__dirname, "../..");
+  const read = (path: string) => readFileSync(resolve(root, path), "utf8");
+  const scripts = Object.keys(JSON.parse(read("package.json")).scripts);
+  const docs = readdirSync(resolve(root, "docs")).filter((name) => name.endsWith(".md")).map((name) => `docs/${name}`);
+  for (const path of ["README.md", ...docs]) {
+    for (const [, name] of read(path).matchAll(/npm run ([a-z][\w:-]*)/g)) {
+      expect(scripts, `${path} mentions npm run ${name}`).toContain(name);
+    }
+  }
+  for (const path of ["docs/desk-bridge.md", "AGENTS.md"]) {
+    expect(read(path)).not.toContain("The default `addin_base` is `https://atlasomnia.github.io/");
+    expect(read(path)).toContain("The default `addin_base` is the plugin-served sidebar at `https://localhost:47640/sidecar-excel/`");
+  }
+  expect(read("docs/publish-runbook.md")).toContain("hosted sidebar, enable Pages with source GitHub Actions");
 });

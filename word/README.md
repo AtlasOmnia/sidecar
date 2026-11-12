@@ -221,7 +221,7 @@ Or set `addin_base` under `plugins.entries.atlas-sidecar-word.settings` in that 
 
 Nothing is published by this checkout. At publication, keep the development history private: prepare a fresh-root public snapshot with a GitHub noreply author identity, rather than pushing this branch's personal-data-bearing history. Do not rewrite this private branch's history. Review the snapshot, create `AtlasOmnia/sidecar-word`, and fill the catalog `sha` with its reviewed 40-hex public commit (the publish-time placeholder is not an installable pin).
 
-Enable GitHub Pages with GitHub Actions and let `.github/workflows/pages.yml` build/deploy the public site. Verify `https://atlasomnia.github.io/sidecar-word/manifest.xml`, `taskpane.html`, and `SHA256SUMS`, then run a clean-profile public-origin Connect, Allow, edit/readback and revoke check before claiming that origin works. These publication actions and live checks are deliberately not run tonight.
+Optional, only for the hosted origin (the default sidebar is served by the plugin): enable GitHub Pages with GitHub Actions and let `.github/workflows/pages.yml` build/deploy the public site. Verify `https://atlasomnia.github.io/sidecar-word/manifest.xml`, `taskpane.html`, and `SHA256SUMS`, then run a clean-profile public-origin Connect, Allow, edit/readback and revoke check before claiming that origin works. These publication actions and live checks are deliberately not run tonight.
 
 ## Tests
 

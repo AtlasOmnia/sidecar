@@ -31,3 +31,13 @@ def test_catalog_bounds_platform_evidence():
     assert "reopen the sidebar" in text
     assert "no real undo" in text.lower()
     assert "installer" in text and "addin_base" in text
+
+
+def test_docs_name_the_plugin_served_default_and_keep_pages_optional():
+    catalog = (ROOT / "catalog/atlas-sidecar-word.yaml").read_text(encoding="utf-8")
+    assert "The public default is https://atlasomnia.github.io" not in catalog
+    assert "deploy Pages and" not in catalog
+    assert "The default is the plugin-served sidebar at https://localhost:<actual-port>/sidecar-word/" in catalog
+    for relative in ("README.md", "plugins/atlas-sidecar-word/README.md"):
+        text = (ROOT / relative).read_text(encoding="utf-8")
+        assert "Optional, only for the hosted origin (the default sidebar is served by the plugin): enable GitHub Pages" in text

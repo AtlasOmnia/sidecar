@@ -40,7 +40,8 @@ System-keychain trust was not required in our Word and PowerPoint runs (login-ke
 remove any matching System entry if you installed one, then delete only the plugin's `tls` folder.
 Uninstall/revoke do not remove OS trust. No tool should change keychains.
 
-The default `addin_base` is `https://atlasomnia.github.io/sidecar-excel/` (public live test pending publication).
+The default `addin_base` is the plugin-served sidebar at `https://localhost:47640/sidecar-excel/` (the bridge uses its
+actual bound port). `https://atlasomnia.github.io/sidecar-excel/` is an optional hosted override, not live-tested.
 For another site set `plugins.entries.atlas-sidecar-excel.settings.addin_base` to that HTTPS base.
 Match the built manifest's base URL to that setting. See README for the build/config commands.
 The bridge/approval is local; Hermes may send workbook/chat data to the configured model provider.

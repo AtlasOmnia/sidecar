@@ -170,7 +170,7 @@ describe("generated workbook plan guidance", () => {
   });
   it("S10 rollout docs preserve real adoption/native/provider HOLDs", () => {
     const text = doc("workbook-plan-rollout.md");
-    for (const s of ["default off", "HOLD", "Task 23", "Mac", "Windows", "RB5", "rollback", "installed", "provider", "npm run validate", "npm audit"]) expect(text).toContain(s);
+    for (const s of ["default off", "HOLD", "Task 23", "Mac", "Windows", "RB5", "rollback", "installed", "provider", "no `validate` npm script", "npm audit"]) expect(text).toContain(s);
     expect(text).toContain("not whole-release acceptance");
   });
 });

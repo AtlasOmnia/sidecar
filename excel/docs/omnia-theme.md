@@ -33,8 +33,8 @@ Do not run `npm start`, a sideload command or any live service for theme QA.
 
 The offline validator uses the installed Office manifest parser, XML parsing,
 resource resolution, icon dimensions, the pinned token SHA-256 and pre-theme
-manifest invariants. It never calls Microsoft's validation service. The existing
-`npm run validate` uploads XML to that service, so it is not an offline-safe gate.
+manifest invariants. It never calls Microsoft's validation service. This package defines no
+`validate` npm script; validating against Microsoft's online service is a separate step and not an offline-safe gate.
 This local check is not a substitute for Microsoft service/schema certification.
 
 When running from an agent process that inherits `HERMES_OFFICE_UPSTREAM_KEY`,

@@ -19,8 +19,9 @@ private. Public names are decided:
    release's 40-hex commit SHA in the catalog submission; bump version and pin together on later releases.
    The pin must name the exported plugin commit, not an unrelated development-history commit. Submit the
    catalog separately after publication, so a self-referential commit hash is not required.
-4. Create `AtlasOmnia/sidecar-excel`, push only the fresh publication history, and enable Pages with source
-   GitHub Actions. The prepared `.github/workflows/pages.yml` builds the static `dist` artifact and deploys it.
+4. Create `AtlasOmnia/sidecar-excel` and push only the fresh publication history. Only if you maintain the optional
+   hosted sidebar, enable Pages with source GitHub Actions; the prepared `.github/workflows/pages.yml` builds the
+   static `dist` artifact and deploys it. The default plugin-served localhost sidebar needs no Pages deployment.
 5. Verify the repository and (if Pages is deployed) hosted manifest URLs, `taskpane.html`, `commands.html`, assets
    and `SHA256SUMS` from the public origin. Preserve webpack's `taskpane.*.js.LICENSE.txt`. Verify checksums
    against the release build.
