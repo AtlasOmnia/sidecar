@@ -207,7 +207,6 @@ Or set `addin_base` under `plugins.entries.atlas-sidecar-word.settings` in that 
 
 * Retained evidence identifies the failed search as 312 ASCII characters, beyond Word’s 255-character search bound. OOXML had already merged the heading/body before that failure; final Heading 1 was Normal, but the exact operation losing style remains unisolated. The bounded search/style repair at d4d0de9 passed the native checks described above: source and encoded queries are capped at 255 UTF-16 units, replacement capacity stays 5000, actual styles are read back, and failed searches must stop destructive recovery. Guidance is not a hard execution fence; use native Office Undo for recovery after uncertain mutations.
 * Picture-only paragraph reuse shares its first inserted text with the picture. Arbitrary rich formatting, fields/content controls, comprehensive native Unicode/encoded-boundary coverage and 5000-character native replacement remain unqualified. Upstream Hermes schema rejection may echo arguments. Native short-edit Undo is not whole-turn grouping or proof for all operations.
-* Two internal error messages still say Hermes for Word.
 * Reversing an insert can leave empty paragraphs behind.
 * Stop ends the turn; an edit already requested may still land, and nothing is rolled back.
 * Planned TLS hardening: TLS-only trust (`-p ssl`) and a server-auth EKU on the CA. Neither is applied by the current trust command.

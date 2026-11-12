@@ -33,7 +33,7 @@ export function buildServerOwnedRequest(
 ): { model: string; messages: ChatMessage[]; stream: boolean; temperature: number } {
   if (!isValidBridgeSessionId(bridgeSessionId)) {
     throw new Error(
-      "Hermes-agent mode requires an active Word bridge session with a valid UUID. Open the Hermes for Word task pane and try again.",
+      "Hermes-agent mode requires an active Word bridge session with a valid UUID. Open the Sidecar for Word task pane and try again.",
     );
   }
 

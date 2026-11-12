@@ -151,7 +151,7 @@ export class HermesAgent {
     if (isHermesAgentMode(settings.model)) {
       if (!isValidBridgeSessionId(bridgeSessionId)) {
         throw new Error(
-          "Hermes-agent mode requires an active Word bridge session with a valid UUID. Open the Hermes for Word task pane and try again.",
+          "Hermes-agent mode requires an active Word bridge session with a valid UUID. Open the Sidecar for Word task pane and try again.",
         );
       }
       return this.runServerOwned(userRequest, settings, callbacks, signal, bridgeSessionId, turnStart);

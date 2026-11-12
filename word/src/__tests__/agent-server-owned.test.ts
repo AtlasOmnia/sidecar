@@ -1,6 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { readdirSync, readFileSync } from "node:fs";
+import { join } from "node:path";
 
 import { HermesAgent } from "../agent";
+import { buildServerOwnedRequest } from "../serverOwnedMode";
 import * as wordTools from "../wordTools";
 
 const SERVER_MODEL = "hermes-agent";
@@ -200,6 +203,38 @@ describe("HermesAgent server-owned mode", () => {
     )).rejects.toThrow(/UUID/i);
 
     expect(fetchSpy).not.toHaveBeenCalled();
+  });
+
+  it("names the current product, not the old Hermes for Word name, in both bridge-session errors", async () => {
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      makeFinalResponse("should not reach") as unknown as Response
+    );
+    const settings = { baseUrl: "http://127.0.0.1:8645/v1", model: SERVER_MODEL, maxIterations: 4 };
+
+    const agentError = await new HermesAgent().run(
+      "Summarize this document", settings, callbacks, new AbortController().signal, "not-a-uuid",
+    ).then(() => undefined, (error: unknown) => error);
+    let requestError: unknown;
+    try {
+      buildServerOwnedRequest(settings, [], "not-a-uuid");
+    } catch (error) {
+      requestError = error;
+    }
+
+    for (const error of [agentError, requestError]) {
+      expect(error).toBeInstanceOf(Error);
+      expect((error as Error).message).toContain("Open the Sidecar for Word task pane and try again.");
+      expect((error as Error).message).not.toContain("Hermes for Word");
+    }
+  });
+
+  it("ships the corrected bridge-session message in the plugin-served sidebar bundle", () => {
+    const sidebar = "plugins/atlas-sidecar-word/sidebar";
+    const bundles = readdirSync(sidebar).filter((name) => /^taskpane\.[0-9a-f]+\.js$/.test(name));
+    expect(bundles).toHaveLength(1);
+    const bundle = readFileSync(join(sidebar, bundles[0]), "utf8");
+    expect(bundle).toContain("Open the Sidecar for Word task pane and try again.");
+    expect(bundle).not.toContain("Hermes for Word");
   });
 
   it("allows the server-owned Hermes loop to exceed the direct-provider 20-second call budget", async () => {

@@ -6371,7 +6371,7 @@ function getServerOwnedSystemPrompt() {
 }
 function buildServerOwnedRequest(settings, messages, bridgeSessionId) {
     if (!isValidBridgeSessionId(bridgeSessionId)) {
-        throw new Error("Hermes-agent mode requires an active Word bridge session with a valid UUID. Open the Hermes for Word task pane and try again.");
+        throw new Error("Hermes-agent mode requires an active Word bridge session with a valid UUID. Open the Sidecar for Word task pane and try again.");
     }
     return {
         model: settings.model,
@@ -6472,7 +6472,7 @@ class HermesAgent {
         const turnStart = Date.now();
         if (isHermesAgentMode(settings.model)) {
             if (!isValidBridgeSessionId(bridgeSessionId)) {
-                throw new Error("Hermes-agent mode requires an active Word bridge session with a valid UUID. Open the Hermes for Word task pane and try again.");
+                throw new Error("Hermes-agent mode requires an active Word bridge session with a valid UUID. Open the Sidecar for Word task pane and try again.");
             }
             return this.runServerOwned(userRequest, settings, callbacks, signal, bridgeSessionId, turnStart);
         }
