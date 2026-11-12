@@ -1073,8 +1073,10 @@ class DeskRuntime:
     def revoke_text(self) -> str:
         removed = self.store.revoke()
         dropped = self.bridge.drop_all_sessions()
+        removal = self.bridge.tls.removal_instructions()
         return (f"Revoked Sidecar for {self.cfg.APP_TITLE}: {removed} remembered approval(s) removed, "
-                f"{dropped} open sidebar session(s) closed. The sidebar must ask again.")
+                f"{dropped} open sidebar session(s) closed. The sidebar must ask again."
+                + ("\n" + removal if removal else ""))
 
     def write_manifest_text(self) -> str:
         """Render the bundled manifest for this runtime's current add-in base and write it to plugin data."""
@@ -1169,6 +1171,9 @@ class DeskRuntime:
                 removed = self.store.revoke()
                 print(f"Revoked Sidecar for {self.cfg.APP_TITLE}: {removed} remembered approval(s) removed. "
                       f"An open sidebar is disconnected at its next request.")
+                removal = self.bridge.tls.removal_instructions()
+                if removal:
+                    print(removal)
             else:
                 print(self._decided(self.store.decide(action == "allow", getattr(args, "code", None))))
         except DeskError as exc:

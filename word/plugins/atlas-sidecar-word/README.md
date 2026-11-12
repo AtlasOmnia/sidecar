@@ -107,6 +107,8 @@ the plugin never silently reuses or rotates that CA. For recovery, stop this plu
 keychain (Keychain Access) or Current User > Trusted Root Certification Authorities (Windows certificate manager),
 then remove only this plugin's `tls` directory and start it again. Review/trust the newly printed CA. Uninstalling
 the plugin or `/sidecar-word revoke` does **not** remove OS certificate trust; remove the matching CA manually.
+`/sidecar-word revoke` also prints the exact steps for this install's CA: stop the bridge, remove the CA by
+its SHA-1 fingerprint with the printed command, then delete only this plugin's `tls` folder.
 On macOS remove trust in **Keychain Access > login > Certificates > Sidecar for Word local CA … > Delete**
 (older installs: **Sidecar local CA …**). Compare with `openssl x509 -noout -fingerprint -in <tls>/ca.pem`,
 then delete only this plugin's `tls` folder (path above). Re-trust the printed replacement if starting again.

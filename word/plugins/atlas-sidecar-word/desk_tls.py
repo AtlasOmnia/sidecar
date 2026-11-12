@@ -204,3 +204,23 @@ class LocalTLS:
                 "so protect the key file and remove the trust when you stop using Sidecar. "
                 "Review and run this command yourself" + (" in PowerShell" if platform == "win32" else "")
                 + ":\n" + command)
+
+    def removal_instructions(self, platform: str | None = None) -> str | None:
+        """Manual steps that remove exactly this install's CA trust; shown on request, never performed here."""
+        thumbprint = self.ca_thumbprint()
+        if thumbprint is None:
+            return None
+        platform = platform or sys.platform
+        if platform == "win32":
+            remove = ("in PowerShell remove only this CA from your Current User Trusted Root store:\n"
+                      f"certutil -user -delstore Root '{thumbprint}'")
+        elif platform == "darwin":
+            remove = ("remove only this CA and its trust setting from your login keychain:\n"
+                      f'security delete-certificate -t -Z {thumbprint} "$HOME/Library/Keychains/login.keychain-db"')
+        else:
+            remove = "remove only the CA with this SHA-1 fingerprint from your user trust store."
+        return (f"If you no longer use Sidecar, remove the trust for this install's local CA (SHA-1 {thumbprint}) "
+                "yourself, in this order; the plugin never changes OS trust.\n"
+                "1. Stop the bridge: quit Hermes (the gateway or plugin host that runs this plugin).\n"
+                f"2. Then {remove}\n"
+                f"3. Only then delete this plugin's own TLS folder and nothing else: {self.directory}")

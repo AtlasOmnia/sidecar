@@ -492,6 +492,20 @@ def test_revoke_closes_open_sessions_and_forgets_the_approval(tmp_path: Path) ->
         assert rt.store.status() == {"approved": False, "grants": 0, "pending": 0}
 
 
+def test_revoke_shows_removal_steps_for_this_install_ca_and_changes_no_trust(tmp_path: Path, capsys) -> None:
+    from types import SimpleNamespace
+    rt, other = make_runtime(tmp_path / "a"), make_runtime(tmp_path / "b")
+    assert "Stop the bridge" not in rt.slash("revoke")  # no local CA yet: nothing to remove
+    rt.bridge.tls.ensure()
+    other.bridge.tls.ensure()
+    steps = rt.bridge.tls.removal_instructions()
+    assert rt.bridge.tls.ca_thumbprint() in steps and other.bridge.tls.ca_thumbprint() not in steps
+    assert rt.slash("revoke").endswith("\n" + steps)
+    assert rt.cli_run(SimpleNamespace(action="revoke", code=None)) == 0
+    assert capsys.readouterr().out.endswith("\n" + steps + "\n")
+    assert rt.bridge.tls.ca_path.is_file() and rt.bridge.port is None
+
+
 def test_revoke_from_another_process_reaches_the_running_bridge(tmp_path: Path) -> None:
     with running(make_runtime(tmp_path)) as rt:
         grant = connect(rt)["grant"]

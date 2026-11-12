@@ -137,6 +137,8 @@ keychain: **Keychain Access > login > Certificates > “Sidecar for Excel local 
 or Current User > Trusted Root Certification Authorities (Windows certificate manager, untested),
 then remove only this plugin's `tls` directory and start it again. Review/trust the newly printed CA. Uninstalling
 the plugin or `/sidecar-excel revoke` does **not** remove OS certificate trust; remove the matching CA manually.
+`/sidecar-excel revoke` also prints the exact steps for this install's CA: stop the bridge, remove the CA by
+its SHA-1 fingerprint with the printed command, then delete only this plugin's `tls` folder.
 If the CA was also added to the System keychain, remove that matching entry too.
 Delete the plugin's `tls` folder only after removing trust. Reload Excel after changing trust. Until trusted, a browser may report only `TypeError: Load failed`; do not
 disable verification or revert to HTTP. Managed devices may require your administrator's approval of user CAs.

@@ -118,6 +118,8 @@ the plugin never silently reuses or rotates that CA. For recovery, stop this plu
 keychain (Keychain Access) or Current User > Trusted Root Certification Authorities (Windows certificate manager),
 then remove only this plugin's `tls` directory and start it again. Review/trust the newly printed CA. Uninstalling
 the plugin or `/sidecar-powerpoint revoke` does **not** remove OS certificate trust; remove the matching CA manually.
+`/sidecar-powerpoint revoke` also prints the exact steps for this install's CA: stop the bridge, remove the CA by
+its SHA-1 fingerprint with the printed command, then delete only this plugin's `tls` folder.
 To remove trust on Mac: Keychain Access > login > Certificates > “Sidecar for PowerPoint local CA ...” (older installs: “Sidecar local CA ...”) > Delete,
 then delete only this plugin's `tls` folder after stopping the bridge. Uninstall/revoke alone does not remove trust.
 Compare with `openssl x509 -noout -fingerprint -in <plugin-data>/tls/ca.pem` before removing trust.

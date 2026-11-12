@@ -98,6 +98,8 @@ Legacy unconstrained CAs and incorrect constraints/overlong CA validity refuse s
 one recovery instruction per runtime: remove old trust manually before deleting this plugin's TLS directory.
 Only then restart and review the newly generated CA trust command.
 Trust does not replace the approval protocol below. Uninstall/revoke do not remove keychain/root-store entries.
+Revoke prints the exact removal steps for this install's CA (stop the bridge, remove it by SHA-1 fingerprint, then
+delete only this plugin's `tls` directory); the plugin still never runs them.
 For expired CA or corrupt identity, stop this plugin, manually remove its matching CA from the login keychain or
 Windows Current User root store, remove only this plugin's `tls` directory, restart and review/trust the replacement.
 On Mac remove trust in Keychain Access > login > Certificates > “Sidecar for PowerPoint local CA ...” (older installs: “Sidecar local CA ...”) > Delete,

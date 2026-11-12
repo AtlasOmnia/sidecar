@@ -120,6 +120,26 @@ def test_d4_windows_trust_and_removal_target_this_ca_in_the_current_user_root_st
     assert "-delstore" not in LocalTLS(tmp_path / "missing").trust_instructions("win32")
 
 
+@pytest.mark.parametrize("platform,command", [
+    ("win32", "certutil -user -delstore Root '{t}'"),
+    ("darwin", 'security delete-certificate -t -Z {t} "$HOME/Library/Keychains/login.keychain-db"'),
+])
+def test_s5_removal_steps_name_only_this_ca_in_the_safe_order(tmp_path, platform, command):
+    assert LocalTLS(tmp_path / "missing").removal_instructions(platform) is None
+    tls, other = LocalTLS(tmp_path / "it's tls"), LocalTLS(tmp_path / "other")
+    tls.ensure()
+    other.ensure()
+    lines = tls.removal_instructions(platform).splitlines()
+    exact = command.format(t=tls.ca_thumbprint())
+    assert lines.count(exact) == 1 and other.ca_thumbprint() not in "\n".join(lines)
+    stop = next(i for i, line in enumerate(lines) if line.startswith("1. Stop the bridge"))
+    delete = next(i for i, line in enumerate(lines) if line.startswith("3. "))
+    assert stop < lines.index(exact) < delete and lines[delete].endswith(str(tls.directory))
+    assert "never changes OS trust" in lines[0] and "ca-key.pem" not in "\n".join(lines)
+    # Generating the text changes nothing: the identity and its folder are still there.
+    assert tls.ca_path.is_file() and tls.ca_key_path.is_file()
+
+
 def test_d4_incomplete_identity_fails_closed_without_replacing_ca(tmp_path):
     tls = LocalTLS(tmp_path)
     tls.ensure()
