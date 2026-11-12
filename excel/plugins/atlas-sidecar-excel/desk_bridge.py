@@ -525,7 +525,19 @@ def make_desk_handler(base: type, app: str) -> type:
             return self.headers.get_all("Host", []) == [f"localhost:{port}"]
 
         def _origin_value(self) -> str:
-            return self.headers.get("Origin", "")
+            origins = self.headers.get_all("Origin", [])
+            if origins:
+                return origins[0] if len(origins) == 1 else ""
+            # Same-origin GET/HEAD requests carry no Origin header (Fetch spec). When this bridge serves the
+            # sidebar itself (loopback default origin), treat such a request as the page's own origin unless
+            # the browser marks it cross-site. Cross-origin fetches always send Origin, so they still must match.
+            if self.command in ("GET", "HEAD"):
+                srv = self._server_ref
+                own = f"https://localhost:{srv.server_address()[1]}" if srv is not None else ""
+                site = self.headers.get_all("Sec-Fetch-Site", [])
+                if own and site in ([], ["same-origin"]) and self._desk().allowed_origin == own:
+                    return own
+            return ""
 
         def _check_origin(self) -> bool:
             allowed = self._desk().allowed_origin
@@ -590,7 +602,7 @@ def make_desk_handler(base: type, app: str) -> type:
             self.send_header("Content-Type", "application/octet-stream")
             self.send_header("Content-Length", "0")
             self.send_header("X-Content-Type-Options", "nosniff")
-            self.send_header("Referrer-Policy", "no-referrer")
+            self.send_header("Referrer-Policy", "same-origin")
             self.send_header("Cache-Control", "no-cache")
             self.send_header("Content-Security-Policy", STATIC_CONTENT_SECURITY_POLICY)
             self.send_header("Connection", "close")
@@ -671,7 +683,7 @@ def make_desk_handler(base: type, app: str) -> type:
             self.send_header("Content-Type", mime)
             self.send_header("Content-Length", str(len(content)))
             self.send_header("X-Content-Type-Options", "nosniff")
-            self.send_header("Referrer-Policy", "no-referrer")
+            self.send_header("Referrer-Policy", "same-origin")
             self.send_header("Cache-Control", "no-cache")
             self.send_header("Content-Security-Policy", STATIC_CONTENT_SECURITY_POLICY)
             self.end_headers()

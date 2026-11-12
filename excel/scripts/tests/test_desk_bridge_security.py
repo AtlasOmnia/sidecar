@@ -302,7 +302,7 @@ def test_default_loopback_sidebar_is_served_from_the_bridge(tmp_path: Path, conf
         assert int(headers["Content-Length"]) == len(body)
         assert headers["Cache-Control"] == "no-cache"
         assert headers["X-Content-Type-Options"] == "nosniff"
-        assert headers["Referrer-Policy"] == "no-referrer"
+        assert headers["Referrer-Policy"] == "same-origin"
         assert b"<html" in body.lower()
         policy = headers["Content-Security-Policy"]
         assert "script-src 'self' https://appsforoffice.microsoft.com" in policy
@@ -763,3 +763,54 @@ def test_invalid_addin_base_disables_runtime_but_still_registers_tools(plugin_en
     name = next(iter(ctx.tools))
     out = json.loads(ctx.tools[name]["handler"]({}, session_id=str(uuid.uuid4()), user_task="read", turn_id="t"))
     assert out["ok"] is False and out["error"]["category"] in ("Configuration", "Policy")
+
+
+def test_cli_manifest_uses_running_gateway_bridge_without_starting_one(tmp_path: Path, monkeypatch, capsys) -> None:
+    """A separate `hermes <command> manifest` process must point at the gateway's bridge, not bind its own."""
+    rt = DeskRuntime(appcfg=_AppCfg(_free_ports(2)), data_dir=tmp_path,
+                     addin_base=desk_app.DEFAULT_ADDIN_BASE, api_server_url="http://127.0.0.1:9",
+                     key_provider=KeyProvider(lambda: API_KEY), in_gateway=lambda: False)
+    gateway_port = rt.cfg.PORTS[1]
+    monkeypatch.setattr(rt, "_find_running_default_port", lambda: gateway_port)
+
+    class Args:
+        action = "manifest"
+        code = None
+
+    try:
+        assert rt.cli_run(Args) == 0
+        assert rt.bridge.port is None  # no throwaway listener on the next free port
+        manifest = (tmp_path / "manifest.xml").read_text(encoding="utf-8")
+        assert f"https://localhost:{gateway_port}/{desk_app.COMMAND}/taskpane.html" in manifest
+        assert f"<AppDomain>https://localhost:{gateway_port}</AppDomain>" in manifest
+
+        monkeypatch.setattr(rt, "_find_running_default_port", lambda: None)
+        assert "Start the Hermes gateway" in rt.slash("manifest")
+        assert rt.bridge.port is None
+    finally:
+        rt.stop()
+
+
+def test_same_origin_get_without_origin_header_is_accepted_only_for_the_plugin_served_page(tmp_path: Path) -> None:
+    """Same-origin GETs carry no Origin header; the plugin-served page must still discover its bridge."""
+    rt = DeskRuntime(appcfg=_AppCfg(_free_ports(2)), data_dir=tmp_path / "default",
+                     addin_base=desk_app.DEFAULT_ADDIN_BASE, api_server_url="http://127.0.0.1:9",
+                     key_provider=KeyProvider(lambda: API_KEY), in_gateway=lambda: False)
+    with running(rt):
+        status, _, body = request(rt, "GET", f"/{APP}/hello", origin=None)
+        assert status == 200 and body["app"] == APP
+        status, _, _ = request(rt, "GET", f"/{APP}/hello", origin=None,
+                               headers={"Sec-Fetch-Site": "same-origin"})
+        assert status == 200
+        for site in ("cross-site", "same-site", "none"):
+            status, _, _ = request(rt, "GET", f"/{APP}/hello", origin=None, headers={"Sec-Fetch-Site": site})
+            assert status == 403, site
+        status, _, _ = request(rt, "GET", f"/{APP}/hello", origin="https://evil.example")
+        assert status == 403
+        # Writes still need an explicit, matching Origin header.
+        status, _, _ = request(rt, "POST", f"/{APP}/connect", body={}, origin=None)
+        assert status == 403
+    # A self-hosted override keeps the strict exact-origin rule: no Origin, no access.
+    with running(make_runtime(tmp_path / "override")) as rt:
+        status, _, _ = request(rt, "GET", f"/{APP}/hello", origin=None)
+        assert status == 403

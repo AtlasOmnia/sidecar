@@ -496,7 +496,19 @@ def make_desk_handler(base: type, app: str, command: str) -> type:
             return self.headers.get_all("Host", []) == [f"localhost:{port}"]
 
         def _origin_value(self) -> str:
-            return self.headers.get("Origin", "")
+            origins = self.headers.get_all("Origin", [])
+            if origins:
+                return origins[0] if len(origins) == 1 else ""
+            # Same-origin GET/HEAD requests carry no Origin header (Fetch spec). When this bridge serves the
+            # sidebar itself (loopback default origin), treat such a request as the page's own origin unless
+            # the browser marks it cross-site. Cross-origin fetches always send Origin, so they still must match.
+            if self.command in ("GET", "HEAD"):
+                srv = self._server_ref
+                own = f"https://localhost:{srv.server_address()[1]}" if srv is not None else ""
+                site = self.headers.get_all("Sec-Fetch-Site", [])
+                if own and site in ([], ["same-origin"]) and self._desk().allowed_origin == own:
+                    return own
+            return ""
 
         def _request_path(self) -> str:
             try:
@@ -517,7 +529,7 @@ def make_desk_handler(base: type, app: str, command: str) -> type:
             self.send_header("Content-Type", content_type)
             self.send_header("Content-Length", str(len(body)))
             self.send_header("X-Content-Type-Options", "nosniff")
-            self.send_header("Referrer-Policy", "no-referrer")
+            self.send_header("Referrer-Policy", "same-origin")
             self.send_header("Cache-Control", "no-cache")
             self.send_header("Content-Security-Policy", STATIC_CONTENT_SECURITY_POLICY)
             self.end_headers()
@@ -977,13 +989,57 @@ class DeskRuntime:
             self.bridge.allowed_origin = self.allowed_origin
         return port
 
+    def _find_running_default_port(self) -> Optional[int]:
+        """Find this profile's already-running default bridge (used from a separate CLI process)."""
+        if not self.bridge.tls.ca_path.is_file():
+            return None
+        try:
+            context = self.bridge.tls.client_context()
+        except (OSError, ValueError):
+            return None
+        for port in self.cfg.PORTS:
+            conn = http.client.HTTPSConnection("localhost", port, timeout=0.5, context=context)
+            try:
+                conn.request("GET", f"/{self.cfg.APP}/hello", headers={
+                    "Host": f"localhost:{port}", "Origin": f"https://localhost:{port}",
+                })
+                response = conn.getresponse()
+                body = response.read(1024)
+                if response.status != 200:
+                    continue
+                hello = json.loads(body.decode("utf-8"))
+                if hello.get("app") == self.cfg.APP and hello.get("service") == self.cfg.SERVICE:
+                    return port
+            except (OSError, http.client.HTTPException, ValueError, UnicodeDecodeError):
+                pass
+            finally:
+                conn.close()
+        return None
+
+    def _prepare_manifest_port(self) -> None:
+        """Point the default loopback base at the bridge Office will actually reach.
+
+        Inside the gateway (or once this process owns a bridge) that is our own bound port. A separate
+        `hermes <command> manifest` process must not start a throwaway bridge on the next free port; it
+        finds the gateway's running bridge instead and fails clearly if there is none."""
+        if not self._uses_default_addin_base:
+            return
+        if self.bridge.port is not None or self._in_gateway():
+            self.ensure_started()
+            return
+        port = self._find_running_default_port()
+        if port is None:
+            raise DeskError("NotRunning", "Start the Hermes gateway before generating the loopback manifest")
+        self.addin_base = f"https://localhost:{port}/{self.cfg.COMMAND}/"
+        self.allowed_origin = origin_of(self.addin_base)
+
     def stop(self) -> None:
         self.bridge.stop()
 
     def manifest_text(self) -> str:
         """Write a manifest for the configured sidebar origin and return its Mac sideload command."""
         try:
-            self.ensure_started()
+            self._prepare_manifest_port()
             default_base = check_addin_base(self.cfg.DEFAULT_ADDIN_BASE)
             default_origin = origin_of(default_base)
             bundled_manifest = Path(__file__).with_name("sidebar") / "manifest.xml"
