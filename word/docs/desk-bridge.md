@@ -5,10 +5,11 @@ App-neutral bridge design for Sidecar for Word, Excel and PowerPoint (`desk_app.
 port range and default site). This Word port uses verified localhost TLS; sibling synchronization is separate.
 
 ```
-desktop Office sidebar (static page from addin_base, HTTPS)
-   |  https://localhost:<app port>   exact Origin, Host localhost:<actual-port>
+desktop Office sidebar (static page served by the plugin bridge by default; an `addin_base` override may select a self-hosted HTTPS site)
+   |  https://localhost:<app port>/<sidecar-command>/   exact Origin, Host localhost:<actual-port>
    v
 desk bridge (thread inside the Hermes plugin, 127.0.0.1 only)
+   |-- GET/HEAD /<sidecar-command>/*      allowlisted static bundle from sidebar/SHA256SUMS
    |-- GET  /<app>/hello                 identify (service hermes-desk-<app>)
    |-- POST /<app>/connect               file a connect request -> code, requestId, pollSecret
    |-- POST /<app>/connect/status        pending | denied | expired | approved (+ grant, once)
@@ -27,8 +28,8 @@ The sidebar was served from a private test site via `addin_base`; the CA was tru
 
 Retained evidence identifies the failed search as 312 ASCII characters, beyond Word’s 255-character search bound. OOXML had already merged the heading/body before that failure; final Heading 1 was Normal, but the exact operation losing style remains unisolated. The accepted d4d0de9 repair passed 429 JavaScript and 213 Python tests and bounded native Word 16.114.4/macOS 27.2 acceptance (exact Heading1/Normal paragraphs, targeted style repair, search boundaries, short-edit native Office Undo, bold/table/image preservation and revoke). Picture-only paragraph sharing, arbitrary rich formatting, fields/content controls, comprehensive native Unicode/encoded-boundary and 5000-character replacement remain unqualified. The repaired bounds are: source and encoded queries are capped at 255 UTF-16 units, replacement capacity stays 5000, actual styles are read back, and failed searches must stop destructive recovery. Guidance is not a hard execution fence; use native Office Undo for recovery after uncertain mutations.
 
-The public GitHub Pages origin is first exercised at publication.
-The installer can override `addin_base`; the public default is `https://atlasomnia.github.io/sidecar-word/`.
+The public GitHub Pages origin remains optional and is first exercised at publication.
+The default Word sidebar is bundled with the plugin and served at `https://localhost:<actual-port>/sidecar-word/`; an `addin_base` override may select a self-hosted HTTPS site.
 After a reload, reopen the sidebar if it does not reconnect.
 There is no real undo tool: Hermes reverses an edit by making another edit.
 

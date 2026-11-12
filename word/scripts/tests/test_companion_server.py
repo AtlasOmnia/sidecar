@@ -1448,7 +1448,7 @@ def test_sidebar_origin_comes_from_the_configured_site():
     assert "<AppDomain>{{ADDIN_ORIGIN}}</AppDomain>" in template
     manifest = (Path(_REPO) / "plugins" / desk_app.PLUGIN_ID / "plugin.yaml").read_text(encoding="utf-8")
     assert f'default: "{desk_app.DEFAULT_ADDIN_BASE}"' in manifest
-    assert origin_of(desk_app.DEFAULT_ADDIN_BASE) == "https://atlasomnia.github.io"
+    assert origin_of(desk_app.DEFAULT_ADDIN_BASE) == f"https://localhost:{desk_app.PORTS[0]}"
 
 
 def test_heartbeat_drains_body_before_next_keep_alive_request():

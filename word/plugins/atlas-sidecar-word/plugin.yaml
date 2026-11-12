@@ -1,14 +1,16 @@
 name: atlas-sidecar-word
-version: 1.1.0
+version: 1.2.0
 manifest_version: 2
 author: Atlas Omnia
 license: Apache-2.0
 description: >-
   Sidecar for Word — chat with Hermes in a sidebar inside desktop Word for Mac while
-  Hermes reads, reviews and edits the open document through sidecar_word_* tools. The sidebar is a static
-  page; this plugin runs its HTTPS loopback bridge (localhost:47630-47634) and forwards the sidebar's chat to
-  your Hermes API server. Each sidebar connects only after you allow it in Hermes (/sidecar-word); the
-  approval is remembered until /sidecar-word revoke. Requires one manual user trust step for its local CA.
+  Hermes reads, reviews and edits the open document through sidecar_word_* tools. The plugin serves its bundled
+  sidebar at https://localhost:47630/sidecar-word/ (actual bound port in 47630-47634) over its HTTPS loopback
+  bridge. GitHub Pages or another host is not required; a self-hosted site remains possible through addin_base.
+  The bridge forwards the sidebar's chat to your Hermes API server. Each sidebar connects only after you allow it
+  in Hermes (/sidecar-word); the approval is remembered until /sidecar-word revoke. Requires one manual user trust
+  step for its local CA.
 python_dependencies:
   - "cryptography>=43"
 requires_hermes: ">=0.23.0"
@@ -22,9 +24,9 @@ requires_env:
 config_schema:
   addin_base:
     type: str
-    default: "https://atlasomnia.github.io/sidecar-word/"
-    label: "Sidebar site"
-    description: "Base URL (https, ending in /) of the site that serves the Word sidebar build. The bridge accepts requests only from this site's origin."
+    default: "https://localhost:47630/sidecar-word/"
+    label: "Sidebar base URL"
+    description: "HTTPS base URL of the Word sidebar. By default the plugin serves its bundled sidebar at https://localhost:47630/sidecar-word/ (the actual bound port is used at runtime). Set a self-hosted HTTPS build here to override the bundled page; the bridge accepts only this site's exact origin."
   api_server_url:
     type: str
     default: "http://127.0.0.1:8642"

@@ -20,7 +20,7 @@ describe("Sidecar for Word manifest template (offline contract, not the online O
   it("renders XML with its own add-in identity, version and permission", () => {
     expect(xml.querySelector("parsererror")).toBeNull();
     expect(element("Id").textContent).toBe("6f1e2b8a-3c4d-4e5f-9a1b-2c3d4e5f6a71");
-    expect(element("Version").textContent).toBe("1.1.0.0");
+    expect(element("Version").textContent).toBe("1.2.0.0");
     expect(element("Permissions").textContent).toBe("ReadWriteDocument");
     expect(element("DisplayName").getAttribute("DefaultValue")).toBe(name);
   });

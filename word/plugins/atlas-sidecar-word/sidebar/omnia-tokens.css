@@ -1,0 +1,60 @@
+
+/* ============================================================
+   OMNIA VOICE TOKENS (rev 3, DESIGN-NOTES §2c) — palette × scheme.
+   <html data-palette="teal|blue|gold|red" data-scheme="dark|light">
+   (data-scheme is resolved by JS from Dark / Light / Auto; Auto follows prefers-color-scheme.)
+   Ratios are the pre-measured rev-3 pairs; no literal colours outside this block except the
+   Wikipedia favicon glyph.
+   ============================================================ */
+:root{
+  --ground:#0c1117; --panel:#101923; --raised:#14212d;
+  --line:#27333f; --line-control:#5b7083;
+  --text:#eef2f6; --text-strong:#f7fafc; --muted:#aeb9c5; --dim:#71808f;
+  --accent:#78d6c2; --accent-fill:#78d6c2; --on-accent:#0c1117;
+  --btn-bg:#132924; --btn-text:#d9f7ee; --btn-border:#5a847e;
+  --running:#c9b8ff; --caution:#f4d58d;
+  --danger:#ffb3a7; --danger-bg:#2a1816; --danger-border:#9c5d55;
+  --success:#78d6c2;
+  --scrim:rgba(4,7,10,.62);
+  color-scheme:dark;
+}
+[data-scheme="light"]{
+  --ground:#f4f7f9; --panel:#ffffff; --raised:#eaf0f4;
+  --line:#c9d3dc; --line-control:#6f8292;
+  --text:#0c1117; --text-strong:#000000; --muted:#4a5b6b; --dim:#5f7080;
+  --accent:#1b7563; --accent-fill:#1b7563; --on-accent:#ffffff;
+  --btn-bg:#d9f7ee; --btn-text:#0f3f36; --btn-border:#6f8292;
+  --running:#5b3fb5; --caution:#7a5a00;
+  --danger:#9b2c1f; --danger-bg:#fbe9e6; --danger-border:#b85d51;
+  --success:#1b7563;
+  --scrim:rgba(12,17,23,.38);
+  color-scheme:light;
+}
+[data-palette="blue"]{ --accent:#79c6ff; --accent-fill:#79c6ff; --btn-bg:#13243a; --btn-text:#d9ecff; --btn-border:#5577a0; }
+[data-palette="blue"][data-scheme="light"]{ --accent:#0b5fa5; --accent-fill:#0b5fa5; --on-accent:#ffffff; --btn-bg:#d9ecff; --btn-text:#0d3a66; --btn-border:#6f8292; }
+[data-palette="gold"]{
+  --ground:#0b0a08; --panel:#15120e; --raised:#1d1914; --line:#2c2721; --line-control:#7a6f60;
+  --text:#f3efe7; --text-strong:#fbf8f2; --muted:#b9b0a3; --dim:#8a8073;
+  --accent:#d9b35c; --accent-fill:#d9b35c; --on-accent:#0b0a08;
+  --btn-bg:#2a2211; --btn-text:#f1e3bf; --btn-border:#8a7946; --caution:#79c6ff;
+}
+[data-palette="gold"][data-scheme="light"]{
+  --ground:#f7f4ee; --panel:#ffffff; --raised:#efe9df; --line:#d8d0c2; --line-control:#7b7060;
+  --text:#14110c; --text-strong:#000000; --muted:#5a5245; --dim:#6e6657;
+  --accent:#7a5a00; --accent-fill:#cfa23a; --on-accent:#14110c;
+  --btn-bg:#f3e6c4; --btn-text:#4a3600; --btn-border:#7b7060; --caution:#0b5fa5;
+}
+[data-palette="red"]{
+  --ground:#0a0a0c; --panel:#131316; --raised:#1b1b1f; --line:#2a2a30; --line-control:#737380;
+  --text:#f1f1f4; --text-strong:#ffffff; --muted:#b4b4bd; --dim:#7c7c88;
+  --accent:#ff6f66; --accent-fill:#ff6f66; --on-accent:#0a0a0c;
+  --btn-bg:#2a1416; --btn-text:#ffd9d6; --btn-border:#9a5856; --caution:#79c6ff;
+  --danger:#ffb454; --danger-bg:#2a1f0e; --danger-border:#8c6a2b;
+}
+[data-palette="red"][data-scheme="light"]{
+  --ground:#f6f6f8; --panel:#ffffff; --raised:#ebebef; --line:#d2d2d9; --line-control:#737380;
+  --text:#0c0c10; --text-strong:#000000; --muted:#4f4f5a; --dim:#63636f;
+  --accent:#b3261e; --accent-fill:#b3261e; --on-accent:#ffffff;
+  --btn-bg:#fde3e1; --btn-text:#6b1611; --btn-border:#737380; --caution:#0b5fa5;
+  --danger:#8a4b00; --danger-bg:#fdf0dc; --danger-border:#a06a24;
+}

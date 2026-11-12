@@ -16,8 +16,8 @@ TOOL_PREFIX = "sidecar_word_"
 TOOLSET = "sidecar-word"
 # Own range: never Workbench's 47615-47619, never another Sidecar app's range.
 PORTS = tuple(range(47630, 47635))
-# Public Pages destination; publication and its first live-origin test are separate steps.
-DEFAULT_ADDIN_BASE = "https://atlasomnia.github.io/sidecar-word/"
+# The plugin serves the bundled sidebar from its own HTTPS loopback bridge.
+DEFAULT_ADDIN_BASE = f"https://localhost:{PORTS[0]}/{COMMAND}/"
 
 __all__ = ["APP", "APP_TITLE", "DOCUMENT_NOUN", "PLUGIN_ID", "COMMAND", "SERVICE", "TOOL_PREFIX", "TOOLSET",
            "PORTS", "DEFAULT_ADDIN_BASE", "CompanionHandler", "CompanionServer"]

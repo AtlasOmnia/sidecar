@@ -24,13 +24,15 @@ def test_trust_disclosure_describes_policy_breadth(tmp_path, platform):
     assert "For TLS it can only vouch for localhost. The trust command does not limit the certificate to TLS, so protect the key file and remove the trust when you stop using Sidecar." in rt.bridge.tls.trust_instructions(platform)
 
 
-def test_public_destination_and_workflow_are_explicit():
+def test_loopback_default_and_optional_publication_workflow_are_explicit():
     from desk_plugin import desk_app
-    assert desk_app.DEFAULT_ADDIN_BASE == "https://atlasomnia.github.io/sidecar-word/"
+    assert desk_app.DEFAULT_ADDIN_BASE == f"https://localhost:{desk_app.PORTS[0]}/{desk_app.COMMAND}/"
     manifest = (ROOT / "plugins/atlas-sidecar-word/plugin.yaml").read_text()
     catalog = (ROOT / "catalog/atlas-sidecar-word.yaml").read_text()
     workflow = (ROOT / ".github/workflows/pages.yml").read_text()
     assert f'default: "{desk_app.DEFAULT_ADDIN_BASE}"' in manifest
+    assert "plugin serves its bundled sidebar" in manifest
+    assert "self-hosted" in manifest and "addin_base" in manifest
     for text in (manifest, catalog):
         assert "platforms: [macos]  # Windows desktop Word untested" in text
     assert "repo: https://github.com/AtlasOmnia/sidecar-word" in catalog

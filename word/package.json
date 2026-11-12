@@ -1,11 +1,12 @@
 {
   "name": "atlas-sidecar-word",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "private": true,
-  "description": "Sidecar for Word: a static desktop Word sidebar for your own Hermes agent (bridge runs inside the Hermes plugin).",
+  "description": "Sidecar for Word: a desktop Word sidebar served by the Hermes plugin over its local HTTPS bridge.",
   "scripts": {
     "build": "webpack --mode production",
     "build:static": "node scripts/build-static.mjs",
+    "build:sidebar": "SIDECAR_UNMINIFIED=1 npm run build:static -- --base https://localhost:47630/sidecar-word/ --out plugins/atlas-sidecar-word/sidebar",
     "generate:plugin-schemas": "node scripts/generate-office-plugin-schemas.mjs",
     "check:plugin-schemas": "node scripts/generate-office-plugin-schemas.mjs --check",
     "test": "npm run test:unit && npm run test:plugin",

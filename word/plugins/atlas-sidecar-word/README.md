@@ -1,14 +1,14 @@
 <!-- SPDX-License-Identifier: Apache-2.0 -->
-# Sidecar for Word (1.1.0)
+# Sidecar for Word (1.2.0)
 
 ## Judge quickstart — Word only (Mac)
 
-Publication candidate: public installation and public-origin smoke are still pending.
-1. After publication, install `hermes plugins install https://github.com/AtlasOmnia/sidecar-word#plugins/atlas-sidecar-word --enable`; enable the Hermes API server and start the gateway as described in **Setup** below.
-2. Review and run this install's printed local-CA trust command, download `https://atlasomnia.github.io/sidecar-word/manifest.xml`, and sideload it into desktop Word using the instructions below.
+The default sidebar is bundled with the plugin and served from its HTTPS loopback bridge at `https://localhost:<actual-port>/sidecar-word/`; GitHub Pages or other hosting is not required.
+1. Install `hermes plugins install https://github.com/AtlasOmnia/sidecar-word#plugins/atlas-sidecar-word --enable`; enable the Hermes API server and start the gateway as described in **Setup** below.
+2. Review and run this install's printed local-CA trust command. In Hermes chat run `/sidecar-word manifest`, or run `hermes sidecar-word manifest` in a terminal; follow the printed copy instruction to sideload the generated manifest into Word.
 3. Open a blank synthetic file, click **Connect to Hermes**, compare the code in Hermes, then **Allow**. Allow grants the configured origin access to your **Hermes agent and all its tools until revoked**, not per-edit approval.
 4. Ask: “Write Quarterly Summary as Heading 1, then one short paragraph about fruit prices.” Then request an independent document readback. Use native Office Undo where supported; Stop does not roll back edits. Revoke with `/sidecar-word revoke` when done; removing CA trust is a separate manual step.
-Windows desktop Office is untested. GitHub Pages authority covers the whole configured origin, not just this app's path.
+Windows desktop Office is untested. A self-hosted site can be selected through `addin_base`; approval then covers that configured origin.
 
 
 **Sidecar by Atlas Omnia.** Your Hermes agent, in the sidebar of Microsoft Excel, Word, and PowerPoint.
@@ -35,18 +35,18 @@ Your agent: it runs on your own Hermes setup, with the models and tools you alre
 Chat with your own Hermes agent in a sidebar inside **desktop Word for Mac** while Hermes reads,
 reviews and edits the open document.
 
-The sidebar is a small static web page that Word loads. Everything else runs inside the Hermes plugin: it opens a
-loopback bridge on your computer, forwards the sidebar's chat to your Hermes API server, and gives Hermes twelve
-`sidecar_word_*` tools that act on the open document through the sidebar. No separate service, no proxy to start,
-no Microsoft app registration. HTTPS loopback requires one explicit user trust step for a per-install local CA.
+The plugin serves the bundled static sidebar from its HTTPS loopback bridge at
+`https://localhost:<actual-port>/sidecar-word/`. It forwards the sidebar's chat to your Hermes API server and gives
+Hermes twelve `sidecar_word_*` tools that act on the open document through the sidebar. No separate service, proxy
+or GitHub Pages site is required; HTTPS loopback still requires one explicit user trust step for a per-install local CA.
 
-Status — accepted repair at `d4d0de942d47f4e27bf1cb8f45e6e6ce7d21444d`: 429 JavaScript and 213 Python tests passed, plus types, generated schemas, plugin validation and static build. Native Word 16.114.4 on macOS 27.2 verified exact Heading1/Normal paragraph boundaries and styles, targeted style repair with another paragraph selected, both search-tool boundaries and literal caret, supported short-edit native Undo, preserved bold/table/image fixtures, and revoke. Final-bundle heading smoke passed. These bounded private-origin results are reused on identical runtime bytes; they do not qualify the public origin or every Word operation.
+Status — accepted repair at `d4d0de942d47f4e27bf1cb8f45e6e6ce7d21444d`: 429 JavaScript and 213 Python tests passed, plus types, generated schemas, plugin validation and static build. Native Word 16.114.4 on macOS 27.2 verified exact Heading1/Normal paragraph boundaries and styles, targeted style repair with another paragraph selected, both search-tool boundaries and literal caret, supported short-edit native Undo, preserved bold/table/image fixtures, and revoke. Final-bundle heading smoke passed. These are historical private-origin results for the earlier build; they do not qualify this changed loopback-serving path, the public origin or every Word operation.
 
 Historical pre-repair failure (superseded by accepted repair above): Tested live in desktop Word for Mac on 2026-11-11 at about 00:29, with the plugin and sidebar built from `7eaf1fc`. Connect and Allow worked. The prompt “Write the line Quarterly Summary as a Heading 1, then one short paragraph about fruit prices” wrote both paragraphs, which were read back from the document, but the first line ended as Normal, not Heading 1. OOXML merged the heading/body before an `apply_edit_plan` search failed with `SearchStringInvalidOrTooLong` on a retained 312-character ASCII find. Later recovery restored separate text paragraphs, but final style readback was Normal; the precise style-loss operation is unisolated. Revoke dropped the sidebar to “needs your OK”.
 
 Earlier historical run at `2387154`: heading text and a bulleted list written with readback; Heading 1 style applied when asked; reversal on request removed the text but left empty paragraphs (no real undo). Plugin reload with the sidebar open reconnected by itself; approval was remembered after restarting Word; the next Connect after revoke asked for approval again.
 
-The sidebar was served from a private test site via `addin_base`; the CA was trusted in the login keychain only. Windows desktop Word is not tested. Dark theme, keyboard-only use, Word for the web, the public GitHub Pages origin, and TLS-only trust are not tested.
+Previous native acceptance used a private test site via `addin_base`; the CA was trusted in the login keychain only. This new bundled loopback route has backend tests but has not been exercised in live Word. Windows desktop Word is not tested. Dark theme, keyboard-only use, Word for the web, the public GitHub Pages origin, and TLS-only trust are not tested.
 
 ## Setup
 
@@ -61,8 +61,7 @@ Only desktop Word for Mac has live evidence; Windows instructions below are unve
    start or restart the gateway: `hermes gateway`. The plugin's bridge starts with it.
 3. **Trust the local bridge CA once**: review and run the single platform-specific command printed when the bridge
    starts (also shown by `/sidecar-word trust` or `hermes sidecar-word trust`). See [Local TLS trust](#local-tls-trust).
-4. **Load the sidebar into Word**: download [manifest.xml](https://atlasomnia.github.io/sidecar-word/manifest.xml) from the sidebar site (the plugin setting `addin_base`,
-   see [Settings](#settings)) and sideload it, see [Load the manifest](#load-the-manifest-sideload). Then in Word:
+4. **Load the sidebar into Word**: after the bridge has started, run `/sidecar-word manifest` in Hermes or `hermes sidecar-word manifest` in a terminal. The plugin writes a manifest for its bundled sidebar using the actual bound port and prints the Mac sideload copy instruction; no hosted download is needed. To use a self-hosted site, set `addin_base` first (see [Settings](#settings)). Then in Word:
    Home > Add-ins > Sidecar for Word.
 5. **One click**: press **Connect to Hermes** in the sidebar. The sidebar shows a code. In any Hermes chat run
    `/sidecar-word` and choose **Allow** only if the code matches the one in your sidebar. Done; ask away.
@@ -114,13 +113,13 @@ disable verification or revert to HTTP. Managed devices may require your adminis
 
 ## Load the manifest (sideload)
 
-The manifest is built for one sidebar site (`npm run build:static -- --base <site>/` writes `dist/manifest.xml`).
+The plugin bundles the default manifest and writes a copy rendered for the current `addin_base` and actual bound port into its plugin data directory. Run `/sidecar-word manifest` in Hermes or `hermes sidecar-word manifest` in a terminal after the bridge is running; it prints the manifest path and Mac copy instruction. For an optional self-hosted build, use `npm run build:static -- --base <site>/` to create its manifest.
 
 **macOS** (Word, Excel and PowerPoint read add-in manifests from their own `wef` folder):
 
 ```sh
 mkdir -p ~/Library/Containers/com.microsoft.Word/Data/Documents/wef
-cp manifest.xml ~/Library/Containers/com.microsoft.Word/Data/Documents/wef/atlas-sidecar-word.xml
+cp /path/printed/by/the/manifest/command/manifest.xml ~/Library/Containers/com.microsoft.Word/Data/Documents/wef/atlas-sidecar-word.xml
 ```
 
 Quit and reopen Word, then Home > Add-ins (or Insert > Add-ins > My Add-ins) > Developer Add-ins > Sidecar for
@@ -159,7 +158,7 @@ Plugin settings (`plugins.entries.atlas-sidecar-word.settings` in `config.yaml`,
 
 | Setting | Default | Meaning |
 | --- | --- | --- |
-| `addin_base` | `https://atlasomnia.github.io/sidecar-word/` | HTTPS site serving your sidebar build; the bridge accepts only its origin. The installer can override it. |
+| `addin_base` | `https://localhost:47630/sidecar-word/` | HTTPS base URL for the sidebar. The plugin serves its bundled build here by default (using the actual bound port); set a self-hosted HTTPS build to override it. The bridge accepts only this configured origin. The installer can override it. |
 | `api_server_url` | `http://127.0.0.1:8642` | Your Hermes API server (loopback only). Chat automatically uses this plugin's own profile: `/p/<profile>/v1/...` for a named profile, `/v1/...` for default. An explicit `/p/<profile>` URL path is accepted only for that same named profile; other paths are rejected. |
 | `autostart` | `true` | Start the bridge when the gateway loads the plugin; off: on the first `/sidecar-word` or `sidecar_word_*` call. |
 
@@ -184,7 +183,7 @@ Or set `addin_base` under `plugins.entries.atlas-sidecar-word.settings` in that 
 * No shared API key file. The sidebar never sees an API key. The plugin reads `API_SERVER_KEY` through
   Hermes (`agent.secret_scope.get_secret`) when it forwards a chat request, keeps it in memory, and never writes
   or logs it.
-* Allowing a sidebar lets the site at `<origin>` use your Hermes agent and all its tools until you revoke. Use a site you control or trust; open only documents you trust. Here `<origin>` is the whole configured HTTPS origin (default `https://atlasomnia.github.io`), not just `/sidecar-word/`; other pages on the same origin share this authority.
+* Allowing a sidebar lets the site at `<origin>` use your Hermes agent and all its tools until you revoke. Use a site you control or trust; open only documents you trust. Here `<origin>` is the whole configured HTTPS origin (default `https://localhost:<actual-port>`), not just `/sidecar-word/`; any other page on that same origin shares this authority.
 * No Sidecar tool can approve. Approval is the `/sidecar-word` command or `hermes sidecar-word allow`; an agent that can run shell commands could run the latter, subject to Hermes' own command approval.
 * Logs carry metadata only (route, status, time), never document text, prompts, grants or keys.
 
@@ -198,9 +197,8 @@ Or set `addin_base` under `plugins.entries.atlas-sidecar-word.settings` in that 
   `API_SERVER_KEY` read through Hermes. No other network calls, no telemetry, no self-updater.
 * **Files:** `plugin-data/atlas-sidecar-word/approvals.json` and `pending.json` (hashes and metadata), plus
   `tls/ca.pem`, `tls/localhost.pem` (public certificates), `tls/ca-key.pem` and `tls/localhost-key.pem` (private keys).
-* **The sidebar page** is served from `addin_base`, outside this plugin's catalog pin; it loads Microsoft's
-  Office.js from `appsforoffice.microsoft.com` and sends document data only to the HTTPS localhost bridge. Build it yourself at
-  the pinned commit with `npm ci && npm run build:static -- --base <your site>/`; the build writes `SHA256SUMS`.
+* **The sidebar page** is bundled with the plugin and served by its HTTPS loopback bridge at `https://localhost:<actual-port>/sidecar-word/`; it loads Microsoft's
+  Office.js from `appsforoffice.microsoft.com` and sends document data only to the HTTPS localhost bridge. The build writes `SHA256SUMS`. A custom `addin_base` may still select a self-hosted site, whose build is outside this plugin's catalog pin.
 * **Same author, separate lineage:** Atlas Omnia also publishes Workbench (Office for the web inside Hermes
   Desktop). This plugin is the desktop-Office sidebar; its tools use their own `sidecar_word_` prefix so both can be
   installed together.

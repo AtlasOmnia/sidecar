@@ -6,6 +6,7 @@ in the Word, Excel and PowerPoint repositories.
 """
 from __future__ import annotations
 
+import argparse
 import http.client
 import io
 import json
@@ -285,6 +286,114 @@ def test_unexpected_host_header_is_refused(tmp_path: Path) -> None:
         for host in ("127.0.0.1:%d" % rt.bridge.port, "evil.example", "127.0.0.1"):
             status, _, _ = request(rt, "GET", f"/{APP}/hello", host=host)
             assert status == 421
+
+
+def test_default_loopback_sidebar_is_served_from_the_bridge(tmp_path: Path) -> None:
+    rt = DeskRuntime(appcfg=_AppCfg(_free_ports(2)), data_dir=tmp_path,
+                     addin_base=desk_app.DEFAULT_ADDIN_BASE, api_server_url="http://127.0.0.1:9",
+                     key_provider=KeyProvider(lambda: API_KEY), in_gateway=lambda: False)
+    assert desk_app.DEFAULT_ADDIN_BASE == f"https://localhost:{desk_app.PORTS[0]}/{desk_app.COMMAND}/"
+    with running(rt):
+        expected_base = f"https://localhost:{rt.bridge.port}/{desk_app.COMMAND}/"
+        assert rt.addin_base == expected_base
+        assert rt.allowed_origin == f"https://localhost:{rt.bridge.port}"
+        status, headers, body = request(rt, "GET", f"/{desk_app.COMMAND}/taskpane.html", origin=None)
+        assert status == 200 and isinstance(body, bytes)
+        assert headers["Content-Type"].startswith("text/html")
+        assert int(headers["Content-Length"]) == len(body)
+        assert b"<html" in body.lower()
+        assert "appsforoffice.microsoft.com" in headers["Content-Security-Policy"]
+        assert "script-src 'self' https://appsforoffice.microsoft.com" in headers["Content-Security-Policy"]
+        assert "style-src 'self'" in headers["Content-Security-Policy"]
+        assert "connect-src 'self'" in headers["Content-Security-Policy"]
+        assert "frame-ancestors" in headers["Content-Security-Policy"]
+        assert headers["X-Content-Type-Options"] == "nosniff"
+        assert headers["Referrer-Policy"] == "no-referrer"
+        assert headers["Cache-Control"] == "no-cache"
+        assert headers["Content-Security-Policy"]
+        assert headers.get("X-Frame-Options", "").lower() != "deny"
+        head_status, head_headers, head_body = request(
+            rt, "HEAD", f"/{desk_app.COMMAND}/taskpane.html", origin=None)
+        assert head_status == 200 and head_body is None
+        assert head_headers["Content-Length"] == headers["Content-Length"]
+
+
+def test_sidebar_static_route_fails_closed(tmp_path: Path) -> None:
+    rt = DeskRuntime(appcfg=_AppCfg(_free_ports(2)), data_dir=tmp_path,
+                     addin_base=desk_app.DEFAULT_ADDIN_BASE, api_server_url="http://127.0.0.1:9",
+                     key_provider=KeyProvider(lambda: API_KEY), in_gateway=lambda: False)
+    with running(rt):
+        prefix = f"/{desk_app.COMMAND}"
+        for path in (f"{prefix}/missing.js", f"{prefix}/../desk_bridge.py",
+                     f"{prefix}/%2e%2e/desk_bridge.py", f"{prefix}/%2e%2e%2fdesk_bridge.py",
+                     f"{prefix}/%252e%252e%252fdesk_bridge.py", f"{prefix}/%5cdesk_bridge.py",
+                     f"{prefix}/%00taskpane.html", f"{prefix}//taskpane.html",
+                     f"/{desk_app.COMMAND}%2ftaskpane.html"):
+            status, _, _ = request(rt, "GET", path, origin=None)
+            assert status == 404, path
+        status, _, _ = request(rt, "POST", f"{prefix}/taskpane.html", origin=None)
+        assert status == 405
+        status, _, _ = request(rt, "PUT", f"{prefix}/taskpane.html", origin=None)
+        assert status == 405
+        status, _, _ = request(rt, "DELETE", f"{prefix}/taskpane.html", origin=None)
+        assert status == 405
+        status, headers, _ = request(rt, "GET", f"{prefix}/taskpane.html", origin="https://evil.example")
+        assert status == 403
+        assert "Access-Control-Allow-Origin" not in headers
+
+
+def test_custom_addin_base_keeps_exact_origin_and_serves_sidebar(tmp_path: Path) -> None:
+    rt = DeskRuntime(appcfg=_AppCfg(_free_ports(2)), data_dir=tmp_path,
+                     addin_base=ADDIN_BASE, api_server_url="http://127.0.0.1:9",
+                     key_provider=KeyProvider(lambda: API_KEY), in_gateway=lambda: False)
+    with running(rt):
+        assert rt.addin_base == ADDIN_BASE
+        assert rt.allowed_origin == ORIGIN
+        status, headers, body = request(
+            rt, "GET", f"/{desk_app.COMMAND}/taskpane.html", origin=ORIGIN)
+        assert status == 200 and isinstance(body, bytes)
+        assert "Access-Control-Allow-Origin" not in headers
+        assert b"<html" in body.lower()
+
+
+def test_manifest_command_renders_current_origin_and_prints_mac_sideload_steps(tmp_path: Path, capsys) -> None:
+    rt = DeskRuntime(appcfg=_AppCfg(_free_ports(2)), data_dir=tmp_path,
+                     addin_base=desk_app.DEFAULT_ADDIN_BASE, api_server_url="http://127.0.0.1:9",
+                     key_provider=KeyProvider(lambda: API_KEY), in_gateway=lambda: False)
+    with running(rt):
+        expected_base = f"https://localhost:{rt.bridge.port}/{desk_app.COMMAND}/"
+        expected_origin = f"https://localhost:{rt.bridge.port}"
+        output = rt.slash("manifest")
+        manifest_path = tmp_path / "manifest.xml"
+        assert str(manifest_path) in output
+        assert "~/Library/Containers/com.microsoft.Word/Data/Documents/wef/" in output
+        manifest = manifest_path.read_text(encoding="utf-8")
+        assert f'{expected_base}taskpane.html' in manifest
+        assert f'<AppDomain>{expected_origin}</AppDomain>' in manifest
+        assert "{{ADDIN_BASE}}" not in manifest and "{{ADDIN_ORIGIN}}" not in manifest
+
+        parser = argparse.ArgumentParser()
+        rt.cli_setup(parser)
+        args = parser.parse_args(["manifest"])
+        assert rt.cli_run(args) == 0
+        cli_output = capsys.readouterr().out
+        assert str(manifest_path) in cli_output
+        assert "~/Library/Containers/com.microsoft.Word/Data/Documents/wef/" in cli_output
+
+
+def test_bundled_sidebar_files_match_sha256sums() -> None:
+    sidebar = desk_loader.PLUGIN_DIR / "sidebar"
+    sums = sidebar / "SHA256SUMS"
+    assert sums.is_file()
+    entries = {}
+    for line in sums.read_text(encoding="utf-8").splitlines():
+        digest, name = line.split("  ", 1)
+        entries[name] = digest
+    assert "taskpane.html" in entries
+    assert all((sidebar / name).is_file() for name in entries)
+    import hashlib
+    assert all(hashlib.sha256((sidebar / name).read_bytes()).hexdigest() == digest
+               for name, digest in entries.items())
 
 
 # ------------------------------------------------------------------------------------------------
