@@ -1,0 +1,87 @@
+# SPDX-License-Identifier: Apache-2.0
+# Typecheck, generated-file checks, vitest (sidebar) and pytest (plugin) for each app, on Linux and Windows.
+# No secrets. Actions are pinned to full commit SHAs (tag in the comment).
+name: tests
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: ${{ matrix.app }} (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        app: [excel, word, powerpoint]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 40
+    defaults:
+      run:
+        shell: bash
+        working-directory: ${{ matrix.app }}
+    env:
+      NO_COLOR: "1"
+      PYTHONUTF8: "1"
+    steps:
+      - name: Check out this repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+
+      # The desk bridge, TLS and runtime suites import Hermes itself (hermes_constants, hermes_cli);
+      # without it they fail at import.
+      - name: Check out Hermes Agent v0.23.0
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          repository: NousResearch/hermes-agent
+          ref: 2bd378ed1b8d6bf2192cb26e0a55ff3091e6bd19  # tag v0.23.0
+          path: _hermes-agent
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0  # v7.1.0
+        with:
+          python-version: "3.14"
+
+      - name: Set up Node
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1  # v7.1.0
+        with:
+          node-version: "22"
+
+      - name: Install dependencies (pinned)
+        run: |
+          npm ci
+          python -m pip install --disable-pip-version-check pytest==9.2.0 cryptography==50.0.2 truststore==0.10.5 ruamel.yaml==0.18.17 PyYAML==6.0.3
+
+      - name: Typecheck
+        run: node node_modules/typescript/bin/tsc --noEmit
+
+      - name: Generated plugin schemas are current
+        run: npm run check:plugin-schemas
+
+      - name: Generated WorkbookPlan contract is current
+        if: matrix.app == 'excel'
+        run: npm run check:workbook-plan
+
+      - name: Python plan runner
+        if: matrix.app == 'excel'
+        run: npm run test:python-plan-runner
+
+      - name: vitest
+        run: npm run test:unit
+
+      - name: pytest
+        env:
+          PYTHON: python
+          PYTHONPATH: ${{ github.workspace }}/_hermes-agent
+        run: node scripts/run-python-tests.mjs --pytest scripts/tests
