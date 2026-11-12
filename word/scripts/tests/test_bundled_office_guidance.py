@@ -35,7 +35,7 @@ refs = links["references"]
 assert len(refs) >= 3, refs
 text = entry.read_text()
 for ref in refs:
-    assert "](" + ref + ")" in text, ref
+    assert "](" + ref.replace("\\", "/") + ")" in text, ref  # Hermes on Windows lists references with backslashes
     reply = json.loads(_serve_skill_file(entry.parent, ref, q))
     assert reply["success"], reply
     assert reply["content"] == (entry.parent / ref).read_text()
