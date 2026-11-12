@@ -1,14 +1,16 @@
 name: atlas-sidecar-excel
-version: 1.0.0
+version: 1.1.0
 manifest_version: 2
 author: Atlas Omnia
 license: Apache-2.0
 description: >-
   Sidecar for Excel — chat with Hermes in a sidebar inside desktop Excel for Mac while
-  Hermes reads, reviews and edits the open workbook through sidecar_excel_* tools. The sidebar is a static
-  page; this plugin runs its HTTPS loopback bridge (localhost:47640-47644) and forwards the sidebar's chat to
-  your Hermes API server. Each sidebar connects only after you allow it in Hermes (/sidecar-excel); the
-  approval is remembered until /sidecar-excel revoke. Requires one manual user trust step for its local CA.
+  Hermes reads, reviews and edits the open workbook through sidecar_excel_* tools. The plugin serves its bundled
+  sidebar from the same HTTPS loopback bridge at https://localhost:<actual-port>/sidecar-excel/ (ports 47640-47644)
+  and forwards chat to your Hermes API server. GitHub Pages or self-hosting is not required; a custom HTTPS site
+  remains available with the addin_base override. Each sidebar connects only after you allow it in Hermes
+  (/sidecar-excel); approval is remembered until /sidecar-excel revoke. Requires one manual user trust step for its
+  local CA. Generate a ready manifest with /sidecar-excel manifest or hermes sidecar-excel manifest.
 python_dependencies:
   - "cryptography>=43"
 requires_hermes: ">=0.23.0"
@@ -22,9 +24,9 @@ requires_env:
 config_schema:
   addin_base:
     type: str
-    default: "https://atlasomnia.github.io/sidecar-excel/"
+    default: "https://localhost:47640/sidecar-excel/"
     label: "Sidebar site"
-    description: "Base URL (https, ending in /) of the site that serves the Excel sidebar build. The bridge accepts requests only from this site's origin."
+    description: "Default bundled sidebar base; runtime follows the bridge's actual port. Set an HTTPS base built and hosted by you to override it; the bridge accepts requests only from that site's origin."
   api_server_url:
     type: str
     default: "http://127.0.0.1:8642"

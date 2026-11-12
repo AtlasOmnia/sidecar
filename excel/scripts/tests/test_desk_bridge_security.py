@@ -27,7 +27,7 @@ import desk_loader
 PKG = desk_loader.load()
 from desk_plugin import desk_app  # noqa: E402
 from desk_plugin.desk_bridge import (  # noqa: E402
-    GRANT_HEADER, ApprovalStore, DeskError, DeskRuntime, KeyProvider, check_api_server_url, origin_of)
+    GRANT_HEADER, ApprovalStore, DeskError, DeskRuntime, KeyProvider, _render_manifest, check_api_server_url, origin_of)
 
 APP = desk_app.APP
 ADDIN_BASE = "https://sidebar.example.test/office/originals/%s/" % APP
@@ -282,6 +282,130 @@ def test_unexpected_host_header_is_refused(tmp_path: Path) -> None:
         for host in ("127.0.0.1:%d" % rt.bridge.port, "evil.example", "127.0.0.1"):
             status, _, _ = request(rt, "GET", f"/{APP}/hello", host=host)
             assert status == 421
+            status, _, _ = request(rt, "GET", f"/{desk_app.COMMAND}/taskpane.html", origin=None, host=host)
+            assert status == 421
+
+
+@pytest.mark.parametrize("configured_base", [desk_app.DEFAULT_ADDIN_BASE, ""])
+def test_default_loopback_sidebar_is_served_from_the_bridge(tmp_path: Path, configured_base: str) -> None:
+    rt = DeskRuntime(appcfg=_AppCfg(_free_ports(2)), data_dir=tmp_path,
+                     addin_base=configured_base, api_server_url="http://127.0.0.1:9",
+                     key_provider=KeyProvider(lambda: API_KEY), in_gateway=lambda: False)
+    assert desk_app.DEFAULT_ADDIN_BASE == f"https://localhost:{desk_app.PORTS[0]}/{desk_app.COMMAND}/"
+    with running(rt):
+        assert rt.addin_base == f"https://localhost:{rt.bridge.port}/{desk_app.COMMAND}/"
+        assert rt.allowed_origin == f"https://localhost:{rt.bridge.port}"
+        status, headers, body = request(rt, "GET", f"/{desk_app.COMMAND}/taskpane.html", origin=None)
+        assert status == 200
+        assert isinstance(body, bytes)
+        assert headers["Content-Type"].startswith("text/html")
+        assert int(headers["Content-Length"]) == len(body)
+        assert headers["Cache-Control"] == "no-cache"
+        assert headers["X-Content-Type-Options"] == "nosniff"
+        assert headers["Referrer-Policy"] == "no-referrer"
+        assert b"<html" in body.lower()
+        policy = headers["Content-Security-Policy"]
+        assert "script-src 'self' https://appsforoffice.microsoft.com" in policy
+        assert "style-src 'self'" in policy
+        assert "connect-src 'self'" in policy and "https://localhost:*" in policy
+        assert "frame-ancestors" in policy and "https://*.office.com" in policy
+        assert headers.get("X-Frame-Options", "").lower() != "deny"
+        status, head_headers, head_body = request(rt, "HEAD", f"/{desk_app.COMMAND}/taskpane.html", origin=None)
+        assert status == 200 and head_body is None
+        assert int(head_headers["Content-Length"]) == len(body)
+
+
+def test_sidebar_static_route_fails_closed(tmp_path: Path) -> None:
+    rt = DeskRuntime(appcfg=_AppCfg(_free_ports(2)), data_dir=tmp_path,
+                     addin_base=desk_app.DEFAULT_ADDIN_BASE, api_server_url="http://127.0.0.1:9",
+                     key_provider=KeyProvider(lambda: API_KEY), in_gateway=lambda: False)
+    with running(rt):
+        prefix = f"/{desk_app.COMMAND}"
+        for path in (f"{prefix}/missing.js", f"{prefix}/../desk_bridge.py",
+                     f"{prefix}/%2e%2e/desk_bridge.py", f"{prefix}/file..txt",
+                     f"{prefix}/assets%2ficon-32.png", f"{prefix}/%5cdesk_bridge.py",
+                     f"{prefix}/%00", f"{prefix}//taskpane.html", f"{prefix}/%2ftaskpane.html"):
+            status, _, _ = request(rt, "GET", path, origin=None)
+            assert status == 404, path
+        for method in ("POST", "PUT", "DELETE", "OPTIONS"):
+            status, _, _ = request(rt, method, f"{prefix}/taskpane.html", origin=None)
+            assert status == 405, method
+        status, headers, _ = request(rt, "GET", f"{prefix}/taskpane.html", origin="https://evil.example")
+        assert status == 403
+        assert "Access-Control-Allow-Origin" not in headers
+
+
+def test_sidebar_static_route_preserves_non_default_origin(tmp_path: Path) -> None:
+    override = "https://sidebar.example.test/office/excel/"
+    rt = DeskRuntime(appcfg=_AppCfg(_free_ports(2)), data_dir=tmp_path,
+                     addin_base=override, api_server_url="http://127.0.0.1:9",
+                     key_provider=KeyProvider(lambda: API_KEY), in_gateway=lambda: False)
+    with running(rt):
+        assert rt.addin_base == override
+        assert rt.allowed_origin == origin_of(override)
+        status, _, body = request(rt, "GET", f"/{desk_app.COMMAND}/taskpane.html", origin=None)
+        assert status == 200 and isinstance(body, bytes) and b"<html" in body.lower()
+        status, headers, _ = request(rt, "GET", f"/{desk_app.COMMAND}/taskpane.html", origin="https://evil.example")
+        assert status == 403 and "Access-Control-Allow-Origin" not in headers
+
+
+def test_manifest_command_writes_current_loopback_manifest(tmp_path: Path, capsys) -> None:
+    rt = DeskRuntime(appcfg=_AppCfg(_free_ports(2)), data_dir=tmp_path,
+                     addin_base=desk_app.DEFAULT_ADDIN_BASE, api_server_url="http://127.0.0.1:9",
+                     key_provider=KeyProvider(lambda: API_KEY), in_gateway=lambda: False)
+    with running(rt):
+        slash_output = rt.slash("manifest")
+        manifest_path = tmp_path / "manifest.xml"
+        assert str(manifest_path) in slash_output
+        assert 'mkdir -p "$HOME/Library/Containers/com.microsoft.Excel/Data/Documents/wef"' in slash_output
+        assert '"$HOME/Library/Containers/com.microsoft.Excel/Data/Documents/wef/atlas-sidecar-excel.xml"' in slash_output
+        manifest = manifest_path.read_text(encoding="utf-8")
+        assert f"https://localhost:{rt.bridge.port}/{desk_app.COMMAND}/taskpane.html" in manifest
+        assert f"<AppDomain>https://localhost:{rt.bridge.port}</AppDomain>" in manifest
+        assert "{{ADDIN_" not in manifest
+
+        class Args:
+            action = "manifest"
+            code = None
+
+        assert rt.cli_run(Args) == 0
+        cli_output = capsys.readouterr().out
+        assert str(manifest_path) in cli_output
+        assert '"$HOME/Library/Containers/com.microsoft.Excel/Data/Documents/wef/atlas-sidecar-excel.xml"' in cli_output
+
+
+def test_manifest_fallback_renders_bundled_default_for_new_port(tmp_path: Path) -> None:
+    installed_plugin = tmp_path / "installed-plugin"
+    sidebar = installed_plugin / "sidebar"
+    sidebar.mkdir(parents=True)
+    template_path = desk_loader.PLUGIN_DIR.parents[1] / "manifest.template.xml"
+    template = template_path.read_text(encoding="utf-8")
+    default_manifest = (template.replace("{{ADDIN_BASE}}", desk_app.DEFAULT_ADDIN_BASE)
+                        .replace("{{ADDIN_ORIGIN}}", origin_of(desk_app.DEFAULT_ADDIN_BASE)))
+    (sidebar / "manifest.xml").write_text(default_manifest, encoding="utf-8")
+    actual_base = f"https://localhost:47642/{desk_app.COMMAND}/"
+
+    rendered = _render_manifest(installed_plugin, actual_base, desk_app.DEFAULT_ADDIN_BASE)
+
+    assert actual_base + "taskpane.html" in rendered
+    assert "https://localhost:47640/sidecar-excel/" not in rendered
+    assert "<AppDomain>https://localhost:47642</AppDomain>" in rendered
+    assert "{{ADDIN_" not in rendered
+
+
+def test_bundled_sidebar_files_match_sha256sums() -> None:
+    sidebar = desk_loader.PLUGIN_DIR / "sidebar"
+    sums = sidebar / "SHA256SUMS"
+    assert sums.is_file()
+    entries = {}
+    for line in sums.read_text(encoding="utf-8").splitlines():
+        digest, name = line.split("  ", 1)
+        entries[name] = digest
+    assert "taskpane.html" in entries
+    assert all((sidebar / name).is_file() for name in entries)
+    import hashlib
+    assert all(hashlib.sha256((sidebar / name).read_bytes()).hexdigest() == digest
+               for name, digest in entries.items())
 
 
 # ------------------------------------------------------------------------------------------------

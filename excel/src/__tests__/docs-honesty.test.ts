@@ -18,10 +18,10 @@ it("keeps installation and live-acceptance claims bounded across public docs", (
   expect(readme).toContain("Keychain Access > login > Certificates");
   expect(readme).toContain("System keychain");
   expect(readme).toContain("hermes config set plugins.entries.atlas-sidecar-excel.settings.addin_base https://sidebar.example.org/excel/");
-  expect(readme).toContain("https://atlasomnia.github.io/sidecar-excel/manifest.xml");
-  expect(readme).toContain("the public GitHub Pages origin is first exercised at publication");
-  expect(read("plugins/atlas-sidecar-excel/desk_app.py")).toContain('DEFAULT_ADDIN_BASE = "https://atlasomnia.github.io/sidecar-excel/"');
-  expect(read("plugins/atlas-sidecar-excel/plugin.yaml")).toContain('default: "https://atlasomnia.github.io/sidecar-excel/"');
+  expect(readme).toContain("`/sidecar-excel manifest`");
+  expect(readme).toContain("the optional Pages override has not been exercised");
+  expect(read("plugins/atlas-sidecar-excel/desk_app.py")).toContain('DEFAULT_ADDIN_BASE = f"https://localhost:{PORTS[0]}/{COMMAND}/"');
+  expect(read("plugins/atlas-sidecar-excel/plugin.yaml")).toContain('default: "https://localhost:47640/sidecar-excel/"');
   expect(read(".github/workflows/pages.yml")).toContain("npm ci && npm run build:static -- --base https://atlasomnia.github.io/sidecar-excel/");
   expect(read("LICENSE")).toContain("Apache License");
   expect(read("NOTICE")).toContain("Atlas Omnia");

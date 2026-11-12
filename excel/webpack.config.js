@@ -9,6 +9,8 @@ module.exports = async (_env, argv) => {
 
   return {
     devtool: isDev ? "source-map" : false,
+    // Plugin-bundled sidebar ships readable (unminified) so catalog reviewers can audit it.
+    optimization: { minimize: process.env.SIDECAR_UNMINIFIED !== "1" },
     entry: {
       omniaTheme: "./src/taskpane/omniaThemeBootstrap.ts",
       taskpane: "./src/taskpane/taskpane.ts",
@@ -55,7 +57,8 @@ module.exports = async (_env, argv) => {
           { from: "src/taskpane/omnia-tokens.css", to: "omnia-tokens.css" },
           { from: "src/taskpane/omnia-pane.css", to: "omnia-pane.css", info: { minimized: true } },
           { from: "src/taskpane/taskpane.css", to: "taskpane.css" },
-          { from: "assets", to: "assets" }
+          // The native macOS icon is not consumed by the Office webview; keep the web bundle text/image-only.
+          { from: "assets", to: "assets", globOptions: { ignore: ["**/hermes.icns"] } }
         ]
       })
     ]

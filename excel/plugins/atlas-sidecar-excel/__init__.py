@@ -635,8 +635,8 @@ def register(ctx: Any) -> None:
     if hasattr(ctx, "register_command"):
         ctx.register_command(
             desk_app.COMMAND, runtime.slash,
-            description="Allow, deny or revoke the Sidecar for Excel sidebar; status",
-            args_hint="[allow|deny <code>|revoke|status|trust]",
+            description="Write a sideload manifest, allow, deny or revoke the Sidecar for Excel sidebar; status",
+            args_hint="[manifest|allow|deny <code>|revoke|status|trust]",
         )
     if hasattr(ctx, "register_cli_command"):
         ctx.register_cli_command(

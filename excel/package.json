@@ -1,6 +1,6 @@
 {
   "name": "sidecar-excel",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "private": true,
   "packageManager": "npm@10.9.4",
   "engines": {
@@ -18,7 +18,8 @@
     "check:workbook-plan": "node scripts/generate-workbook-plan-contract.mjs --check",
     "test:watch": "vitest",
     "test": "npm run check:workbook-plan && vitest run && node scripts/run-python-tests.mjs --pytest scripts/tests",
-    "build:static": "node scripts/build-static.mjs"
+    "build:static": "node scripts/build-static.mjs",
+    "build:sidebar": "SIDECAR_UNMINIFIED=1 npm run build:static -- --base https://localhost:47640/sidecar-excel/ --out plugins/atlas-sidecar-excel/sidebar"
   },
   "dependencies": {
     "@types/office-js": "^1.0.477",

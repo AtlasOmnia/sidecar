@@ -1,14 +1,14 @@
 <!-- SPDX-License-Identifier: Apache-2.0 -->
-# Sidecar for Excel (1.0.0)
+# Sidecar for Excel (1.1.0)
 
 ## Judge quickstart — Excel only (Mac)
 
 Publication candidate: public installation and public-origin smoke are still pending.
 1. After publication, install `hermes plugins install https://github.com/AtlasOmnia/sidecar-excel#plugins/atlas-sidecar-excel --enable`; enable the Hermes API server and start the gateway as described in **Setup** below.
-2. Review and run this install's printed local-CA trust command, download `https://atlasomnia.github.io/sidecar-excel/manifest.xml`, and sideload it into desktop Excel using the instructions below.
+2. Review and run this install's printed local-CA trust command, then run `/sidecar-excel manifest` (or `hermes sidecar-excel manifest`) and follow the printed Mac sideload instruction. No hosted sidebar is required.
 3. Open a blank synthetic file, click **Connect to Hermes**, compare the code in Hermes, then **Allow**. Allow grants the configured origin access to your **Hermes agent and all its tools until revoked**, not per-edit approval.
 4. Ask: “Write Fruit/Price and Apple/2 in A1:B2, then put =SUM(B2) in B3.” Then request an independent document readback. Use native Office Undo where supported; Stop does not roll back edits. Revoke with `/sidecar-excel revoke` when done; removing CA trust is a separate manual step.
-Windows desktop Office is untested. GitHub Pages authority covers the whole configured origin, not just this app's path.
+Windows desktop Office is untested. A custom HTTPS override grants the whole configured origin, not just this app's path.
 
 
 **Sidecar by Atlas Omnia.** Your Hermes agent, in the sidebar of Microsoft Excel, Word, and PowerPoint.
@@ -37,7 +37,8 @@ Your agent: it runs on your own Hermes setup, with the models and tools you alre
 Chat with your own Hermes agent in a sidebar inside **desktop Excel for Mac** while Hermes reads,
 reviews and edits the open workbook.
 
-The sidebar is a small static web page that Excel loads. Everything else runs inside the Hermes plugin: it opens a
+The sidebar is a small static web page served by the plugin's HTTPS loopback bridge at
+`https://localhost:<actual-port>/sidecar-excel/`. Everything else runs inside the Hermes plugin: it opens a
 loopback bridge on your computer, forwards the sidebar's chat to your Hermes API server, and gives Hermes 28
 `sidecar_excel_*` tools that act on the open workbook through the sidebar. No separate service, no proxy to start,
 no Microsoft app registration. HTTPS loopback requires one explicit user trust step for a per-install local CA.
@@ -51,18 +52,18 @@ the CA was trusted in the login keychain, and this Mac also has it in the System
 Earlier the same night at `35ef09e` (behaviour unchanged since): reversal on request by clearing the range
 (no real undo), plugin reload with the sidebar open (it reconnected by itself and edited again), approval
 remembered after restarting Excel, and the next Connect after revoke asked for approval again.
-Windows desktop Excel is untested. Also not tested: dark theme, keyboard-only use, the public Pages origin,
+Windows desktop Excel is untested. Also not tested: dark theme, keyboard-only use, the optional public Pages override,
 TLS-only trust, Excel for the web, or every tool/workbook plan. Reopen the sidebar if it does not reconnect.
-Live-tested with the sidebar served from a private test site; the public GitHub Pages origin is first exercised at publication.
+Live-tested with the sidebar served from a private test site before the bundled same-origin default; the optional Pages override has not been exercised.
 
 ## Setup
 
 Publication is pending; the owner’s [publish runbook](https://github.com/AtlasOmnia/sidecar-excel/blob/main/docs/publish-runbook.md) covers the fresh-history export,
-Pages deployment and first public-origin acceptance run.
+optional Pages deployment and public-origin acceptance run. Pages hosting is not required for the default local sidebar.
 
 You need Hermes (0.23.0 or newer) and desktop Excel on the same computer. Only desktop Excel for Mac has been live-tested.
 
-1. **Install the plugin** (the repository and Pages site are prepared for publication, not yet published):
+1. **Install the plugin** (the repository is prepared for publication, not yet published):
    `hermes plugins install https://github.com/AtlasOmnia/sidecar-excel#plugins/atlas-sidecar-excel --enable`
    It asks for `API_SERVER_KEY` if you have none yet: paste a long random value (for example the output of
    `openssl rand -hex 32`). Hermes stores it in its own `.env`; the plugin never stores or shows it.
@@ -70,8 +71,9 @@ You need Hermes (0.23.0 or newer) and desktop Excel on the same computer. Only d
    start or restart the gateway: `hermes gateway`. The plugin's bridge starts with it.
 3. **Trust the local bridge CA once**: review and run the single platform-specific command printed when the bridge
    starts (request it again with `/sidecar-excel trust` or `hermes sidecar-excel trust`; ordinary status is quiet). See [Local TLS trust](#local-tls-trust).
-4. **Load the sidebar into Excel**: download [manifest.xml](https://atlasomnia.github.io/sidecar-excel/manifest.xml)
-   and sideload it, see [Load the manifest](#load-the-manifest-sideload). For your own site, use its manifest instead.
+4. **Load the sidebar into Excel**: run `/sidecar-excel manifest` in Hermes or `hermes sidecar-excel manifest` in a terminal.
+   It writes a manifest for the actual bridge port into plugin data and prints the Mac copy command; no hosting is required.
+   For your own site, build and sideload that site's manifest instead, see [Load the manifest](#load-the-manifest-sideload).
    Then in Excel:
    Home > Add-ins > Sidecar for Excel.
 5. **One click**: press **Connect to Hermes** in the sidebar. The sidebar shows a code. In any Hermes chat run
@@ -139,7 +141,9 @@ disable verification or revert to HTTP. Managed devices may require your adminis
 
 ## Load the manifest (sideload)
 
-The manifest is built for one sidebar site (`npm run build:static -- --base <site>/` writes `dist/manifest.xml`).
+By default, run `/sidecar-excel manifest` or `hermes sidecar-excel manifest` while the gateway is running. The plugin writes
+`manifest.xml` for its actual localhost port into plugin data and prints the Mac sideload command. For a custom site,
+build a site-specific manifest with `npm run build:static -- --base <site>/` (writes `dist/manifest.xml`).
 
 **macOS** (Word, Excel and PowerPoint read add-in manifests from their own `wef` folder):
 
@@ -178,7 +182,7 @@ Plugin settings (`plugins.entries.atlas-sidecar-excel.settings` in `config.yaml`
 
 | Setting | Default | Meaning |
 | --- | --- | --- |
-| `addin_base` | `https://atlasomnia.github.io/sidecar-excel/` | HTTPS sidebar base; the bridge accepts exactly this site's origin. Public-origin live testing is pending publication. |
+| `addin_base` | `https://localhost:47640/sidecar-excel/` (runtime uses the actual bound port) | Bundled sidebar served by the plugin over the same-origin HTTPS bridge. Optional: set an HTTPS base built and hosted by you; the bridge then accepts exactly that site's origin. |
 | `api_server_url` | `http://127.0.0.1:8642` | Your Hermes API server (loopback only). Chat automatically uses `/p/<profile>/v1/chat/completions` for the plugin's own named profile, or `/v1/chat/completions` for default. An explicit `/p/<profile>` base path is allowed only for that same named profile; other paths and profiles are rejected. |
 | `autostart` | `true` | Start the bridge when the gateway loads the plugin; off: on the first `/sidecar-excel` or `sidecar_excel_*` call. |
 
@@ -194,14 +198,14 @@ hermes config set plugins.entries.atlas-sidecar-excel.settings.addin_base https:
 
 The exact config key is `plugins.entries.atlas-sidecar-excel.settings.addin_base` in the owning profile's
 `config.yaml` (or set `addin_base` in the Desktop Plugins tab). Restart the gateway after changing it;
-download that site's `manifest.xml` and sideload it instead of the public manifest. The build base and setting
+download that site's `manifest.xml` and sideload it instead of the default loopback manifest. The build base and setting
 must match. The bridge accepts exactly one origin, not one URL path: all pages on that host share authority.
-The public default shares `atlasomnia.github.io` with other account sites; keep those sites free of untrusted
-scripts/content. A dedicated origin is preferable for a custom deployment.
+The default is served on the plugin's localhost origin. For custom deployments, use a dedicated origin and keep it
+free of untrusted scripts/content; the bridge grants authority to that entire origin.
 
 ## Safety, in short
 
-* Allowing lets the site at the configured origin (default `https://atlasomnia.github.io`) use your Hermes agent
+* Allowing lets the sidebar at the configured origin (default `https://localhost:<actual-port>`) use your Hermes agent
   and all its tools until you revoke. Use a site you control or trust; open only documents you trust.
 
 * The HTTPS bridge binds `127.0.0.1` only, on ports 47640-47644 (first free), requires Host `localhost:<actual-port>`, and

@@ -5,8 +5,8 @@ Nothing in this remediation run publishes a repository or a site. The current de
 private. Public names are decided:
 
 - Repository: `https://github.com/AtlasOmnia/sidecar-excel`
-- Sidebar base: `https://atlasomnia.github.io/sidecar-excel/`
-- Manifest: `https://atlasomnia.github.io/sidecar-excel/manifest.xml`
+- Optional hosted-sidebar base: `https://atlasomnia.github.io/sidecar-excel/` (the plugin's bundled localhost sidebar is the default)
+- Optional hosted manifest: `https://atlasomnia.github.io/sidecar-excel/manifest.xml`; for default sideloading run `/sidecar-excel manifest` or `hermes sidecar-excel manifest`
 
 ## Owner's later publication run
 
@@ -21,14 +21,15 @@ private. Public names are decided:
    catalog separately after publication, so a self-referential commit hash is not required.
 4. Create `AtlasOmnia/sidecar-excel`, push only the fresh publication history, and enable Pages with source
    GitHub Actions. The prepared `.github/workflows/pages.yml` builds the static `dist` artifact and deploys it.
-5. Verify the repository and manifest URLs, `taskpane.html`, `commands.html`, assets and `SHA256SUMS` from the
-   public origin. Preserve webpack's `taskpane.*.js.LICENSE.txt`. Verify checksums against the release build.
-6. In a fresh disposable Hermes profile, qualify the documented plugin install and public-origin Connect,
-   Allow, read/write/readback and revoke. Trust prompts require the operator; do not automate keychain changes.
-   Record the exact tested publication SHA. Until then, the public origin is untested.
+5. Verify the repository and (if Pages is deployed) hosted manifest URLs, `taskpane.html`, `commands.html`, assets
+   and `SHA256SUMS` from the public origin. Preserve webpack's `taskpane.*.js.LICENSE.txt`. Verify checksums
+   against the release build.
+6. In a fresh disposable Hermes profile, qualify the documented plugin install and default localhost same-origin
+   Connect, Allow, read/write/readback and revoke. Test the optional Pages override separately if maintained.
+   Trust prompts require the operator; do not automate keychain changes. Record the exact tested publication SHA.
 
-The GitHub Pages origin is account-wide, not path-isolated. Keep all content on that origin trusted; consider
-moving to a dedicated origin later. Do not change the CA shape or trust command without a separately approved
+When using GitHub Pages, its origin is account-wide, not path-isolated. Keep all content on that origin trusted;
+consider moving to a dedicated origin later. Do not change the CA shape or trust command without a separately approved
 live retest. Planned TLS hardening remains `-p ssl` and a server-auth EKU on the CA.
 
 ## Latest live evidence and remaining scope
@@ -44,6 +45,6 @@ Earlier the same night at `35ef09e` (behaviour unchanged since), reversal on req
 survived an Excel restart; the next Connect after revoke asked for approval again. See the README for trust
 and removal instructions. These private-site runs are not public-origin acceptance.
 
-Still untested: Windows desktop Excel, dark theme, keyboard-only use, the public GitHub Pages origin,
+Still untested: Windows desktop Excel, dark theme, keyboard-only use, the optional public GitHub Pages override,
 TLS-only trust, runtime accessibility, or full live tool/WorkbookPlan coverage. Publication/install/Pages
 execution and CA server-auth EKU hardening are not proven by these runs.
